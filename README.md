@@ -17,3 +17,8 @@ Creating a `vdrstatusapp.ini` configuration file in the app directory allows to 
 host = yavdr07
 port = 4444
 ```
+# running the app
+
+```
+./vdr_status_display [--fullscreen] [--fakefullscreen]
+```
