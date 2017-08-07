@@ -9,7 +9,7 @@ This app has the following dependencies (the debian/ubuntu Package name is in br
  - autobahn (python-autobahn)
 
 # configuration
-By default the app tries to connect to localhost on port 4444.
+By default the app tries to connect to `localhost` on port `4444`.
 Creating a `vdrstatusapp.ini` configuration file in the app directory allows to set a custom host (or ip) and port:
 
 ```ini
