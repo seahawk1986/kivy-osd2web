@@ -12,7 +12,7 @@ import time
 from kivy.app import App
 from kivy.clock import Clock
 from kivy.config import Config
-from kivy.lang.builder import Builder
+from kivy.lang import Builder
 from kivy.properties import NumericProperty, ObjectProperty, StringProperty, \
                             BooleanProperty, DictProperty, ListProperty
 from kivy.uix.boxlayout import BoxLayout
