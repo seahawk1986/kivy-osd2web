@@ -37,12 +37,11 @@
     id: clock
     font_size: '480sp'
     size_hint: 1, .6
-    text: time.strftime("%H:%M", root.localtime)
+    text: time.strftime("%H:%M:%S", root.localtime)
 
   CenteredBlockLabel:
-    id: channel_label
-    #font_size: '48sp'
-    text: root.channelname
+    text: root.first_line
+    #text: app.channel.get('channelname', 'Initial channelname')
     shorten: True
     shorten_from: 'right'
     text_size: self.width -10, None
@@ -50,11 +49,10 @@
 
   CenteredBlockLabel:
     size_hint: 1, .1
-    #font_size: '48sp'
     text_size: self.width -10, None
     shorten: True
     shorten_from: 'right'
-    text: root.current_title
+    text: root.second_line
 
   ProgressBar:
     max: root.progress_max
@@ -71,8 +69,7 @@
       text: time.strftime("%H:%M", root.current_starttime)
 
     CenteredBlockLabel:
-      id: channel_label
-      #font_size: '48sp'
+      id: playstatus
       text: ("Playing" if root.is_playing else "Pause") if root.is_replay_active else ""
       shorten: True
       shorten_from: 'right'

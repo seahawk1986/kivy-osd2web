@@ -3,6 +3,7 @@
 from __future__ import print_function
 from kivy.support import install_twisted_reactor
 install_twisted_reactor()
+import argparse
 import json
 import locale
 import pprint
@@ -12,8 +13,8 @@ from kivy.app import App
 from kivy.clock import Clock
 from kivy.config import Config
 from kivy.lang.builder import Builder
-from kivy.properties import NumericProperty, ObjectProperty, DictProperty
-from kivy.properties import StringProperty, BooleanProperty, ListProperty
+from kivy.properties import NumericProperty, ObjectProperty, StringProperty, \
+                            BooleanProperty, DictProperty, ListProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.label import Label
 from twisted.python import log
@@ -22,9 +23,18 @@ from twisted.internet.protocol import ReconnectingClientFactory
 from autobahn.twisted.websocket import WebSocketClientFactory, \
                                        WebSocketClientProtocol, \
                                        connectWS
-from datamodel import VDRData
-### Websocket Client ###
 
+def flatten_json(json):
+    if type(json) == dict:
+        for k, v in list(json.items()):
+            if type(v) == dict:
+                flatten_json(v)
+                json.pop(k)
+                for k2, v2 in v.items():
+                    json[k+"_"+k2] = v2
+    return json
+
+### Websocket Client ###
 LOGIN = json.dumps(
         {
             'event': 'login',
@@ -50,10 +60,17 @@ class MyClientProtocol(WebSocketClientProtocol):
 
    def onMessage(self, payload, isBinary):
       if isBinary:
-         print("Binary message received: {0} bytes".format(len(payload)))
+         #print("Binary message received: {0} bytes".format(len(payload)))
+         pass
       else:
          data = json.loads(payload.decode('utf-8'))
-         self.factory.app.vdr.parse_data(data)
+         name = data['event']
+         dat = data['object']
+         if isinstance(dat, dict):
+            dat = flatten_json(dat)
+         else:
+             dat = {name: dat}
+         layout.update_data(name, dat)
 
    def onClose(self, wasClean, code, reason):
        print("connection closed")
@@ -77,14 +94,15 @@ class MyClientFactory(WebSocketClientFactory, ReconnectingClientFactory):
         self.retry(connector)
 
 
-#####
+### End of Websocket Code ###
 locale.setlocale(locale.LC_ALL, '')
+# Set window to fullscreen or maximized
 Config.set('graphics', 'fullscreen', 'auto')
 #Config.set('graphics', 'window_state', 'maximized')
-Builder.load_file('VDRstatus.kv')
 
 
 class BlockLabel(Label):
+    """scale font to fill the label"""
     scale_factor = 1
     factor = dimension = None
 
@@ -107,59 +125,82 @@ class BlockLabel(Label):
 
 
 class MyLayout(BoxLayout):
-    channelname = StringProperty("unknown")
+    data = DictProperty({})
+    is_attached = BooleanProperty(False)
+    is_replay_active = BooleanProperty(False)
+    first_line = StringProperty("Welcome to yaVDR")
+    second_line = StringProperty("Connecting to VDR...")
     localtime = ObjectProperty(time.localtime())
-    date = StringProperty()
     is_replay_active = BooleanProperty(False)
     is_playing = BooleanProperty(False)
     is_recording = BooleanProperty(False)
-    epg_title = StringProperty("Connecting to VDR...")
-    current_title = StringProperty("...")
     current_starttime = ObjectProperty(time.localtime())
     current_endtime = ObjectProperty(time.localtime())
     progress_max = NumericProperty(1000)
     progress_value = NumericProperty(0)
+    pp = pprint.PrettyPrinter(indent=4)
 
     def __init__(self, **kwargs):
         super(MyLayout, self).__init__(**kwargs)
         Clock.schedule_interval(self.update_vars, 1)
 
+    def update_data(self, name, data):
+        for k, v in data.items():
+            if name == 'replay':
+                k = 'replay_' + k
+            elif name == 'replaycontrol':
+                k = 'replaycontrol_' + k
+            #if isinstance(v, (list, dict)):
+            #    print('variable', k, ":")
+            #    self.pp.pprint(v)
+            #else:
+            #    print('variable', k, ":", v)
+            self.data[k] = v
+        self.update_vars()
+
     def update_vars(self, *args):
         self.localtime = time.localtime()
-        current_starttime = app.vdr.current.starttime
-        current_endtime = app.vdr.current.endtime
-        self.current_starttime = time.localtime(int(current_starttime))
-        self.current_endtime = time.localtime(int(current_endtime))
-        duration = current_endtime - current_starttime
-        progress_in_s = int(time.time()) - current_starttime
-        try:
-            self.progress_value = (
-                    float(progress_in_s) / float(duration) * 1000.0)
-        except ZeroDivisionError:
-            self.progress_value = 0
-        self.is_replay_active = app.vdr.is_replay_active
-        self.is_playing = bool(app.vdr.replaycontrol.play)
-        self.is_recording = any(bool(timer['event']['isrunning']) for timer in app.vdr.timers)
+        self.is_replay_active = bool(self.data.get('replay_active', 0))
+        self.is_recording = any(bool(timer['event']['isrunning']) for timer in self.data.get('timers', []))
         if self.is_replay_active:
-            self.current_title = app.vdr.replay.event['title']
-            self.channelname = app.vdr.replay.info['channelname']
+            self.is_playing = bool(self.data.get('replaycontrol_play', 0))
+            self.first_line = self.data.get('replay_event_title', '?')
+            self.second_line = self.data.get('replay_event_shorttext', '')
         else:
-            self.current_title = app.vdr.current.title
-            self.channelname = app.vdr.channel.channelname
+            current_starttime = self.data.get('present_starttime', int(time.time()))
+            current_endtime = self.data.get('present_endtime', int(time.time()))
+            duration = current_endtime - current_starttime
+            progress_in_s = int(time.time()) - current_starttime
+            try:
+                self.progress_value = (
+                        float(progress_in_s) / float(duration) * 1000.0)
+            except ZeroDivisionError:
+                self.progress_value = 0
+            self.current_starttime = time.localtime(int(current_starttime))
+            self.current_endtime = time.localtime(int(current_endtime))
+            self.first_line = self.data.get('channel_channelname', '?')
+            self.second_line = self.data.get('present_title', '?')
+
 
 
 class VDRStatusAPP(App):
+
     def build(self):
-        self.vdr = VDRData()
+        Builder.load_file('VDRstatus.kv')
+        global layout
         layout = MyLayout()
-        self.vdr.update = layout.update_vars
         log.startLogging(sys.stdout)
-        pp = pprint.PrettyPrinter(indent=4)
-        factory = MyClientFactory(self, url="ws://yavdr07:4444", protocols=['osd2vdr'])
-        #reactor.connectTCP('ws://yavdr07', 4444, MyClientFactory(self), protocols=['osd2vdr'], )
+        factory = MyClientFactory(self, url=url, protocols=['osd2vdr'])
         connectWS(factory)
         return layout
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='a kivy status display for osd2web')
+    host = "localhost"
+    port = 4444
+    url = "ws://{}:{}".format(host, port)
     app = VDRStatusAPP()
-    app.run()
+    try:
+        app.run()
+    except KeyboardInterrupt:
+        app.stop()
