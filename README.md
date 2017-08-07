@@ -8,7 +8,7 @@ This app has the following dependencies (the debian/ubuntu Package name is in br
  - twisted (python-twisted)
  - autobahn (python-autobahn)
 
-# configuration
+# Configuration
 By default the app tries to connect to `localhost` on port `4444`.
 Creating a `vdrstatusapp.ini` configuration file in the app directory allows to set a custom host (or ip) and port:
 
@@ -17,7 +17,7 @@ Creating a `vdrstatusapp.ini` configuration file in the app directory allows to 
 host = yavdr07
 port = 4444
 ```
-# running the app
+# Running the App
 
 ```
 ./vdr_status_display [--fullscreen] [--fakefullscreen]
