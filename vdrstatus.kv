@@ -37,7 +37,7 @@
     id: clock
     font_size: '480sp'
     size_hint: 1, .6
-    text: time.strftime("%H:%M:%S", root.localtime)
+    text: time.strftime("%H:%M", root.localtime)
 
   CenteredBlockLabel:
     text: root.first_line
@@ -65,18 +65,17 @@
     size_hint: 1, .2
 
     CenteredBlockLabel:
+      text: root.starttime
       size_hint: .2, 1
-      text: time.strftime("%H:%M", root.current_starttime)
 
     CenteredBlockLabel:
       id: playstatus
-      text: ("Playing" if root.is_playing else "Pause") if root.is_replay_active else ""
+      text: "Pause" if (root.is_replay_active and not root.is_playing) else "{}/{} min".format(root.progress, root.duration)
       shorten: True
       shorten_from: 'right'
       text_size: self.width -10, None
       size_hint: .6, 1
       
-    BlockLabel:
+    CenteredBlockLabel:
+      text: root.endtime
       size_hint: .2, 1
-      text: time.strftime("%H:%M", root.current_endtime)
-

@@ -4,6 +4,7 @@ from __future__ import print_function
 from kivy.support import install_twisted_reactor
 install_twisted_reactor()
 import argparse
+import datetime
 import json
 import locale
 import pprint
@@ -95,10 +96,6 @@ class MyClientFactory(WebSocketClientFactory, ReconnectingClientFactory):
 
 ### End of Websocket Code ###
 locale.setlocale(locale.LC_ALL, '')
-# Set window to fullscreen or maximized
-Config.set('graphics', 'fullscreen', 'auto')
-#Config.set('graphics', 'window_state', 'maximized')
-
 
 class BlockLabel(Label):
     """scale font to fill the label"""
@@ -133,8 +130,10 @@ class MyLayout(BoxLayout):
     is_replay_active = BooleanProperty(False)
     is_playing = BooleanProperty(False)
     is_recording = BooleanProperty(False)
-    current_starttime = ObjectProperty(time.localtime())
-    current_endtime = ObjectProperty(time.localtime())
+    starttime = StringProperty("00:00:00")
+    endtime = StringProperty("00:00:00")
+    progress = NumericProperty(0)
+    duration = NumericProperty(0)
     progress_max = NumericProperty(1000)
     progress_value = NumericProperty(0)
     pp = pprint.PrettyPrinter(indent=4)
@@ -149,11 +148,11 @@ class MyLayout(BoxLayout):
                 k = 'replay_' + k
             elif name == 'replaycontrol':
                 k = 'replaycontrol_' + k
-            #if isinstance(v, (list, dict)):
-            #    print('variable', k, ":")
-            #    self.pp.pprint(v)
-            #else:
-            #    print('variable', k, ":", v)
+            if isinstance(v, (list, dict)):
+                print('variable', k, ":")
+                self.pp.pprint(v)
+            else:
+                print('variable', k, ":", v)
             self.data[k] = v
         self.update_vars()
 
@@ -165,20 +164,36 @@ class MyLayout(BoxLayout):
             self.is_playing = bool(self.data.get('replaycontrol_play', 0))
             self.first_line = self.data.get('replay_event_title', '?')
             self.second_line = self.data.get('replay_event_shorttext', '')
+            self.starttime = "00:00:00"
+            duration = self.data.get('replaycontrol_total', 0) # seconds
+            self.duration = duration / 60
+            hours, remainder = divmod(duration, 60*60)
+            minutes, seconds = divmod(remainder, 60)
+
+            self.endtime = '{:02d}:{:02d}:{:02d}'.format(hours,minutes,seconds)
+            progress = self.data.get('replaycontrol_current', 0)
+            self.progress = progress / 60
+            try:
+                self.progress_value = (
+                        float(progress) / float(duration) * 1000.0)
+            except ZeroDivisionError:
+                self.progress_value = 0
         else:
             current_starttime = self.data.get('present_starttime', int(time.time()))
             current_endtime = self.data.get('present_endtime', int(time.time()))
             duration = current_endtime - current_starttime
+            self.duration = duration / 60
             progress_in_s = int(time.time()) - current_starttime
-            try:
-                self.progress_value = (
-                        float(progress_in_s) / float(duration) * 1000.0)
-            except ZeroDivisionError:
-                self.progress_value = 0
-            self.current_starttime = time.localtime(int(current_starttime))
-            self.current_endtime = time.localtime(int(current_endtime))
+            self.progress = progress_in_s / 60
+            self.starttime = time.strftime("%H:%M:%S", time.localtime(int(current_starttime)))
+            self.endtime = time.strftime("%H:%M:%S", time.localtime(int(current_endtime)))
             self.first_line = self.data.get('channel_channelname', '?')
             self.second_line = self.data.get('present_title', '?')
+        try:
+            self.progress_value = (
+                    float(self.progress) / float(self.duration) * 1000.0)
+        except ZeroDivisionError:
+            self.progress_value = 0
 
 
 
@@ -192,6 +207,9 @@ class VDRStatusAPP(App):
 
     def build(self):
         config = self.config
+        if Config.get('graphics', 'fullscreen') == '1':
+            # use full resolution for fullscreen
+            Config.set('graphics', 'fullscreen', 'auto')
         global layout
         layout = MyLayout()
         log.startLogging(sys.stdout)
