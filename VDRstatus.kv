@@ -1,0 +1,85 @@
+#:kivy 1.0.9
+#:import time time
+# Color for recording label
+#:set rec_color_active [1, .1, .1, 1]
+#:set rec_color_inactive [.3, .3, .3, .7]
+
+<CenteredBlockLabel@BlockLabel>:
+  font_size: "480sp"
+  halign: 'center'
+  valign: 'middle'
+
+<MyLayout>:
+  orientation: 'vertical'
+  spacing: 0
+
+  BoxLayout:
+    orientation: 'horizontal'
+    spacing: 0
+    padding: 0
+    size_hint: 1, .1
+
+    CenteredBlockLabel:
+      text: "Play" if root.is_replay_active else "TV"
+      size_hint: .2, 1
+
+    CenteredBlockLabel:
+      size_hint: .6, 1
+      text: time.strftime("%A, %d. %B %Y", root.localtime)
+
+    CenteredBlockLabel:
+      text: "[b]REC[/b]"
+      markup: True
+      color: rec_color_active if root.is_recording else rec_color_inactive
+      size_hint: .2, 1
+
+  CenteredBlockLabel:
+    id: clock
+    font_size: '480sp'
+    size_hint: 1, .6
+    text: time.strftime("%H:%M", root.localtime)
+
+  CenteredBlockLabel:
+    id: channel_label
+    #font_size: '48sp'
+    text: root.channelname
+    shorten: True
+    shorten_from: 'right'
+    text_size: self.width -10, None
+    size_hint: 1, .1
+
+  CenteredBlockLabel:
+    size_hint: 1, .1
+    #font_size: '48sp'
+    text_size: self.width -10, None
+    shorten: True
+    shorten_from: 'right'
+    text: root.current_title
+
+  ProgressBar:
+    max: root.progress_max
+    value: root.progress_value
+    size_hint: 1, .01
+
+  BoxLayout:
+    orientation: 'horizontal'
+    spacing: 5
+    size_hint: 1, .2
+
+    CenteredBlockLabel:
+      size_hint: .2, 1
+      text: time.strftime("%H:%M", root.current_starttime)
+
+    CenteredBlockLabel:
+      id: channel_label
+      #font_size: '48sp'
+      text: ("Playing" if root.is_playing else "Pause") if root.is_replay_active else ""
+      shorten: True
+      shorten_from: 'right'
+      text_size: self.width -10, None
+      size_hint: .6, 1
+      
+    BlockLabel:
+      size_hint: .2, 1
+      text: time.strftime("%H:%M", root.current_endtime)
+
