@@ -12,7 +12,6 @@ import time
 from kivy.app import App
 from kivy.clock import Clock
 from kivy.config import Config
-from kivy.lang import Builder
 from kivy.properties import NumericProperty, ObjectProperty, StringProperty, \
                             BooleanProperty, DictProperty, ListProperty
 from kivy.uix.boxlayout import BoxLayout
@@ -185,20 +184,29 @@ class MyLayout(BoxLayout):
 
 class VDRStatusAPP(App):
 
+    def build_config(self, config):
+        config.setdefaults('connection', {
+            'host': 'localhost',
+            'port': 4444
+        })
+
     def build(self):
-        Builder.load_file('VDRstatus.kv')
+        config = self.config
         global layout
         layout = MyLayout()
         log.startLogging(sys.stdout)
+        url = "ws://{}:{}".format(config.get('connection', 'host'), config.getint('connection', 'port'))
         factory = MyClientFactory(self, url=url, protocols=['osd2vdr'])
         connectWS(factory)
         return layout
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='a kivy status display for osd2web')
     host = "localhost"
-    port = 4444
-    url = "ws://{}:{}".format(host, port)
+    try:
+        host = Config.getdefault(tcp, host, localhost)
+    except:
+        pass
+
     app = VDRStatusAPP()
     try:
         app.run()
