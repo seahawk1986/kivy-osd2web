@@ -20,27 +20,27 @@
     size_hint: 1, .1
 
     CenteredBlockLabel:
-      text: "Play" if root.is_replay_active else "TV"
+      text: "Play" if app.is_replay_active else "TV"
       size_hint: .2, 1
 
     CenteredBlockLabel:
       size_hint: .6, 1
-      text: time.strftime("%A, %d. %B %Y", root.localtime)
+      text: time.strftime("%A, %d. %B %Y", app.localtime)
 
     CenteredBlockLabel:
       text: "[b]REC[/b]"
       markup: True
-      color: rec_color_active if root.is_recording else rec_color_inactive
+      color: rec_color_active if app.is_recording else rec_color_inactive
       size_hint: .2, 1
 
   CenteredBlockLabel:
     id: clock
     font_size: '480sp'
     size_hint: 1, .6
-    text: time.strftime("%H:%M", root.localtime)
+    text: time.strftime("%H:%M", app.localtime)
 
   CenteredBlockLabel:
-    text: root.first_line
+    text: app.first_line
     #text: app.channel.get('channelname', 'Initial channelname')
     shorten: True
     shorten_from: 'right'
@@ -52,11 +52,11 @@
     text_size: self.width -10, None
     shorten: True
     shorten_from: 'right'
-    text: root.second_line
+    text: app.second_line
 
   ProgressBar:
-    max: root.progress_max
-    value: root.progress_value
+    max: app.progress_max
+    value: app.progress_value
     size_hint: 1, .01
 
   BoxLayout:
@@ -65,17 +65,17 @@
     size_hint: 1, .2
 
     CenteredBlockLabel:
-      text: root.starttime
+      text: app.starttime
       size_hint: .2, 1
 
     CenteredBlockLabel:
       id: playstatus
-      text: "Pause" if (root.is_replay_active and not root.is_playing) else "{}/{} min".format(root.progress, root.duration)
+      text: "Pause" if (app.is_replay_active and not app.is_playing) else "{}/{} min".format(app.progress, app.duration)
       shorten: True
       shorten_from: 'right'
       text_size: self.width -10, None
       size_hint: .6, 1
       
     CenteredBlockLabel:
-      text: root.endtime
+      text: app.endtime
       size_hint: .2, 1

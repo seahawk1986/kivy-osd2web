@@ -70,7 +70,7 @@ class MyClientProtocol(WebSocketClientProtocol):
             dat = flatten_json(dat)
          else:
              dat = {name: dat}
-         layout.update_data(name, dat)
+         app.update_data(name, dat)
 
    def onClose(self, wasClean, code, reason):
        print("connection closed")
@@ -121,6 +121,14 @@ class BlockLabel(Label):
 
 
 class MyLayout(BoxLayout):
+
+    def __init__(self, **kwargs):
+        super(MyLayout, self).__init__(**kwargs)
+
+
+
+
+class VDRStatusAPP(App):
     data = DictProperty({})
     is_attached = BooleanProperty(False)
     is_replay_active = BooleanProperty(False)
@@ -138,8 +146,8 @@ class MyLayout(BoxLayout):
     progress_value = NumericProperty(0)
     pp = pprint.PrettyPrinter(indent=4)
 
-    def __init__(self, **kwargs):
-        super(MyLayout, self).__init__(**kwargs)
+    def __init__(self, *args, **kwargs):
+        super(VDRStatusAPP, self).__init__()
         Clock.schedule_interval(self.update_vars, 1)
 
     def update_data(self, name, data):
@@ -195,10 +203,6 @@ class MyLayout(BoxLayout):
         except ZeroDivisionError:
             self.progress_value = 0
 
-
-
-class VDRStatusAPP(App):
-
     def build_config(self, config):
         config.setdefaults('connection', {
             'host': 'localhost',
@@ -210,7 +214,6 @@ class VDRStatusAPP(App):
         if Config.get('graphics', 'fullscreen') == '1':
             # use full resolution for fullscreen
             Config.set('graphics', 'fullscreen', 'auto')
-        global layout
         layout = MyLayout()
         log.startLogging(sys.stdout)
         url = "ws://{}:{}".format(config.get('connection', 'host'), config.getint('connection', 'port'))
