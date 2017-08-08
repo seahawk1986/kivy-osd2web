@@ -95,7 +95,6 @@ class MyClientFactory(WebSocketClientFactory, ReconnectingClientFactory):
 
 
 ### End of Websocket Code ###
-locale.setlocale(locale.LC_ALL, '')
 
 class BlockLabel(Label):
     """scale font to fill the label"""
@@ -122,8 +121,6 @@ class BlockLabel(Label):
 
 class MyLayout(BoxLayout):
     pass
-
-
 
 
 class VDRStatusAPP(App):
@@ -220,12 +217,8 @@ class VDRStatusAPP(App):
         return layout
 
 if __name__ == '__main__':
+    locale.setlocale(locale.LC_ALL, '')
     host = "localhost"
-    try:
-        host = Config.getdefault(tcp, host, localhost)
-    except:
-        pass
-
     app = VDRStatusAPP()
     try:
         app.run()
