@@ -121,14 +121,13 @@ class BlockLabel(Label):
 
 
 class MyLayout(BoxLayout):
-
-    def __init__(self, **kwargs):
-        super(MyLayout, self).__init__(**kwargs)
+    pass
 
 
 
 
 class VDRStatusAPP(App):
+    pp = pprint.PrettyPrinter(indent=4)
     data = DictProperty({})
     is_attached = BooleanProperty(False)
     is_replay_active = BooleanProperty(False)
@@ -144,7 +143,6 @@ class VDRStatusAPP(App):
     duration = NumericProperty(0)
     progress_max = NumericProperty(1000)
     progress_value = NumericProperty(0)
-    pp = pprint.PrettyPrinter(indent=4)
 
     def __init__(self, *args, **kwargs):
         super(VDRStatusAPP, self).__init__()
