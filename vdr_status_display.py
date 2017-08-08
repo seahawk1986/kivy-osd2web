@@ -205,13 +205,13 @@ class VDRStatusAPP(App):
         })
 
     def build(self):
-        config = self.config
         if Config.get('graphics', 'fullscreen') == '1':
             # use full resolution for fullscreen
             Config.set('graphics', 'fullscreen', 'auto')
         layout = MyLayout()
         log.startLogging(sys.stdout)
-        url = "ws://{}:{}".format(config.get('connection', 'host'), config.getint('connection', 'port'))
+        url = "ws://{}:{}".format(self.config.get('connection', 'host'),
+                                  self.config.getint('connection', 'port'))
         factory = MyClientFactory(self, url=url, protocols=['osd2vdr'])
         connectWS(factory)
         return layout
