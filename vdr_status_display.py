@@ -15,7 +15,9 @@ from kivy.clock import Clock
 from kivy.config import Config
 from kivy.properties import NumericProperty, ObjectProperty, StringProperty, \
                             BooleanProperty, DictProperty, ListProperty
+from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.button import Button
 from kivy.uix.label import Label
 from twisted.python import log
 from twisted.internet import reactor
@@ -96,7 +98,8 @@ class MyClientFactory(WebSocketClientFactory, ReconnectingClientFactory):
 
 ### End of Websocket Code ###
 
-class BlockLabel(Label):
+
+class BlockWidget(object):
     """scale font to fill the label"""
     scale_factor = 1
     factor = dimension = None
@@ -117,6 +120,15 @@ class BlockLabel(Label):
                 self.font_size = self.font_size1
         except ZeroDivisionError:
             pass
+
+
+class BlockButton(BlockWidget, Button):
+    pass
+
+
+class BlockLabel(BlockWidget, Label):
+    pass
+
 
 
 class MyLayout(BoxLayout):
@@ -208,13 +220,24 @@ class VDRStatusAPP(App):
         if Config.get('graphics', 'fullscreen') == '1':
             # use full resolution for fullscreen
             Config.set('graphics', 'fullscreen', 'auto')
-        layout = MyLayout()
+        #layout = MyLayout()
+        self.sm = ScreenManager()
+        self.sm.add_widget(MenuScreen(name='menu'))
+        self.sm.add_widget(SettingsScreen(name='settings'))
+        self.sm.current = 'settings'
         log.startLogging(sys.stdout)
         url = "ws://{}:{}".format(self.config.get('connection', 'host'),
                                   self.config.getint('connection', 'port'))
         factory = MyClientFactory(self, url=url, protocols=['osd2vdr'])
         connectWS(factory)
-        return layout
+        #return layout
+        return self.sm
+
+class MenuScreen(Screen):
+    pass
+
+class SettingsScreen(Screen):
+    pass
 
 if __name__ == '__main__':
     locale.setlocale(locale.LC_ALL, '')
