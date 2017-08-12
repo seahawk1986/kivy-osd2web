@@ -20,5 +20,5 @@ port = 4444
 # Running the App
 
 ```
-./vdr_status_display [--fullscreen] [--fakefullscreen]
+./vdr_status_display [--auto-fullscreen]
 ```
