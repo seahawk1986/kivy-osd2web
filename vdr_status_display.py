@@ -1,10 +1,11 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 from __future__ import print_function
+from collections import OrderedDict
 from kivy.support import install_twisted_reactor
 install_twisted_reactor()
 import argparse
-import datetime
+from datetime import datetime, timedelta
 import json
 import locale
 import pprint
@@ -18,23 +19,17 @@ from kivy.properties import NumericProperty, ObjectProperty, StringProperty, \
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
+from kivy.uix.image import AsyncImage
 from kivy.uix.label import Label
+from kivy.uix.spinner import Spinner
 from twisted.python import log
 from twisted.internet import reactor
 from twisted.internet.protocol import ReconnectingClientFactory
 from autobahn.twisted.websocket import WebSocketClientFactory, \
                                        WebSocketClientProtocol, \
                                        connectWS
+from osd2web_data import osd2webData, flatten_json
 
-def flatten_json(json):
-    if type(json) == dict:
-        for k, v in list(json.items()):
-            if type(v) == dict:
-                flatten_json(v)
-                json.pop(k)
-                for k2, v2 in v.items():
-                    json[k+"_"+k2] = v2
-    return json
 
 ### Websocket Client ###
 LOGIN = json.dumps(
@@ -68,10 +63,6 @@ class MyClientProtocol(WebSocketClientProtocol):
          data = json.loads(payload.decode('utf-8'))
          name = data['event']
          dat = data['object']
-         if isinstance(dat, dict):
-            dat = flatten_json(dat)
-         else:
-             dat = {name: dat}
          app.update_data(name, dat)
 
    def onClose(self, wasClean, code, reason):
@@ -101,7 +92,7 @@ class MyClientFactory(WebSocketClientFactory, ReconnectingClientFactory):
 
 class BlockWidget(object):
     """scale font to fill the label"""
-    scale_factor = 1
+    scale_factor = .95
     factor = dimension = None
 
     def on_text(self, *args):
@@ -123,92 +114,113 @@ class BlockWidget(object):
 
 
 class BlockButton(BlockWidget, Button):
-    pass
+    def __init__(self, **kwargs):
+        super(BlockButton, self).__init__(**kwargs)
+        self.bind(on_text=self.on_texture_size)
+        self.on_texture_size()
 
 
 class BlockLabel(BlockWidget, Label):
+    def __init__(self, **kwargs):
+        super(BlockLabel, self).__init__(**kwargs)
+        self.on_texture_size()
+
+
+class ScreenChooserSpinner(Spinner):
+    def change_screen(self, *args):
+        if self.text in self.values and app.sm.current != "Change Screen":
+            app.sm.current = self.text
+        self.text = 'Change Screen'
+
+
+class MenuScreen(Screen):
     pass
 
+class LiveTVScreen(Screen):
+    pass
+
+class ReplayScreen(Screen):
+    pass
+
+class TimerScreen(Screen):
+    pass
+
+
+class ClockScreen(Screen):
+    pass
 
 
 class MyLayout(BoxLayout):
     pass
 
 
-class VDRStatusAPP(App):
+class MyScreenManager(ScreenManager):
+    pass
+
+class StatusBar(BoxLayout):
+    pass
+
+class VDRStatusAPP(App, osd2webData):
     pp = pprint.PrettyPrinter(indent=4)
-    data = DictProperty({})
-    is_attached = BooleanProperty(False)
-    is_replay_active = BooleanProperty(False)
-    first_line = StringProperty("Welcome to yaVDR")
-    second_line = StringProperty("Connecting to VDR...")
+    screens = OrderedDict([
+            (ClockScreen, 'clock'),
+            (LiveTVScreen, 'livetv'),
+            (ReplayScreen, 'replay'),
+            (TimerScreen, 'timer'),
+            (MenuScreen, 'menu'),
+            ])
+    channelname = StringProperty("Welcome to yaVDR")
     localtime = ObjectProperty(time.localtime())
-    is_replay_active = BooleanProperty(False)
-    is_playing = BooleanProperty(False)
-    is_recording = BooleanProperty(False)
-    starttime = StringProperty("00:00:00")
-    endtime = StringProperty("00:00:00")
-    progress = NumericProperty(0)
-    duration = NumericProperty(0)
-    progress_max = NumericProperty(1000)
-    progress_value = NumericProperty(0)
+    now = ObjectProperty("00:00")
+    date = ObjectProperty("Carpe diem.")
+    datetime = ObjectProperty("day, dd:mm:YY 00:00")
 
     def __init__(self, *args, **kwargs):
         super(VDRStatusAPP, self).__init__()
-        Clock.schedule_interval(self.update_vars, 1)
+        Clock.schedule_interval(self.update_clock, 1)
 
     def update_data(self, name, data):
-        for k, v in data.items():
-            if name == 'replay':
-                k = 'replay_' + k
-            elif name == 'replaycontrol':
-                k = 'replaycontrol_' + k
-            if isinstance(v, (list, dict)):
-                print('variable', k, ":")
-                self.pp.pprint(v)
-            else:
-                print('variable', k, ":", v)
-            self.data[k] = v
-        self.update_vars()
+        if isinstance(data, dict):
+            data = flatten_json(data)
+        elif isinstance(data, list):
+            flattened_items = []
+            for item in data:
+                if isinstance(item, dict):
+                    item = flatten_json(item)
+                flattened_items.append(item)
+            data = flattened_items
+        #self.pp.pprint(data)
+        # data for rolechange:
+        # data for skinstate:
+        # data for customdata:
+        # data for recordings:
 
-    def update_vars(self, *args):
-        self.localtime = time.localtime()
-        self.is_replay_active = bool(self.data.get('replay_active', 0))
-        self.is_recording = any(bool(timer['event']['isrunning']) for timer in self.data.get('timers', []))
-        if self.is_replay_active:
-            self.is_playing = bool(self.data.get('replaycontrol_play', 0))
-            self.first_line = self.data.get('replay_event_title', '?')
-            self.second_line = self.data.get('replay_event_shorttext', '')
-            self.starttime = "00:00:00"
-            duration = self.data.get('replaycontrol_total', 0) # seconds
-            self.duration = duration / 60
-            hours, remainder = divmod(duration, 60*60)
-            minutes, seconds = divmod(remainder, 60)
+        update_register = {
+                'replay': self.update_replay,
+                'replaycontrol': self.update_replaycontrol,
+                'timer': self.update_timer,
+                'recordings': self.update_recordings,
+                'actual': self.update_actual,
+                }
 
-            self.endtime = '{:02d}:{:02d}:{:02d}'.format(hours,minutes,seconds)
-            progress = self.data.get('replaycontrol_current', 0)
-            self.progress = progress / 60
-            try:
-                self.progress_value = (
-                        float(progress) / float(duration) * 1000.0)
-            except ZeroDivisionError:
-                self.progress_value = 0
+        update_function = update_register.get(name, None)
+        if update_function is None:
+            print(name)
+            #self.update_vars(data)
+            self.pp.pprint(data)
         else:
-            current_starttime = self.data.get('present_starttime', int(time.time()))
-            current_endtime = self.data.get('present_endtime', int(time.time()))
-            duration = current_endtime - current_starttime
-            self.duration = duration / 60
-            progress_in_s = int(time.time()) - current_starttime
-            self.progress = progress_in_s / 60
-            self.starttime = time.strftime("%H:%M:%S", time.localtime(int(current_starttime)))
-            self.endtime = time.strftime("%H:%M:%S", time.localtime(int(current_endtime)))
-            self.first_line = self.data.get('channel_channelname', '?')
-            self.second_line = self.data.get('present_title', '?')
-        try:
-            self.progress_value = (
-                    float(self.progress) / float(self.duration) * 1000.0)
-        except ZeroDivisionError:
-            self.progress_value = 0
+            update_function(data)
+
+    def update_clock(self, *args):
+        self.localtime = time.localtime()
+        now = datetime.now()
+        self.date = now.strftime("%A, %d. %B %Y")
+        self.now = now.strftime("%H:%M")
+        self.datetime = now.strftime("%a, %d.%m.%y %H:%M")
+        if self.replaycontrol_active and self.replaycontrol_play:
+            self.replaycontrol_current += 1
+            print(self.replaycontrol_current)
+        self.epg_progress_value = int(time.time()) - self.present_starttime + self.time_delta
 
     def build_config(self, config):
         config.setdefaults('connection', {
@@ -217,31 +229,18 @@ class VDRStatusAPP(App):
         })
 
     def build(self):
-        if Config.get('graphics', 'fullscreen') == '1':
-            # use full resolution for fullscreen
-            Config.set('graphics', 'fullscreen', 'auto')
-        #layout = MyLayout()
-        self.sm = ScreenManager()
-        self.sm.add_widget(MenuScreen(name='menu'))
-        self.sm.add_widget(SettingsScreen(name='settings'))
-        self.sm.current = 'settings'
-        log.startLogging(sys.stdout)
+        self.sm = MyScreenManager()
+        for screen_class, screen_name in self.screens.iteritems():
+            self.sm.add_widget(screen_class(name=screen_name))
         url = "ws://{}:{}".format(self.config.get('connection', 'host'),
                                   self.config.getint('connection', 'port'))
         factory = MyClientFactory(self, url=url, protocols=['osd2vdr'])
         connectWS(factory)
-        #return layout
         return self.sm
 
-class MenuScreen(Screen):
-    pass
-
-class SettingsScreen(Screen):
-    pass
-
 if __name__ == '__main__':
+    log.startLogging(sys.stdout)
     locale.setlocale(locale.LC_ALL, '')
-    host = "localhost"
     app = VDRStatusAPP()
     try:
         app.run()

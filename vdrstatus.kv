@@ -1,96 +1,244 @@
 #:kivy 1.9.0
+#:import datetime datetime.datetime
 #:import time time
 # Color for recording label
 #:set rec_color_active [1, .1, .1, 1]
 #:set rec_color_inactive [.3, .3, .3, .7]
 
 <CenteredBlockLabel@BlockLabel>:
-  font_size: "480sp"
+  font_size: self.height - 2
+  text_size: self.size
   halign: 'center'
   valign: 'middle'
 
 <CenteredBlockButton@BlockButton>:
-  font_size: "480sp"
+  font_size: self.height
   halign: 'center'
   valign: 'middle'
 
+<ScreenChooser@ScreenChooserSpinner>:
+  text: 'Screen'
+  halign: 'center'
+  valign: 'middle'
+  values: app.screens.values()
+  text_size: self.size
+  font_size: '28sp'
+  on_text: self.change_screen() 
+
+<StatusBar>:
+  orientation: 'horizontal'
+  spacing: 5
+  padding: 0, 5, 0, 5
+
+  ScreenChooser:
+    size_hint: .2, 1
+
+  BlockLabel:
+    id: 'date_label'
+    size_hint: .6, 1
+    #text_size: self.size
+    font_size: self.height
+    halign: 'center'
+    valign: 'center'
+    max_lines: 1
+    shorten: True
+    text: app.datetime
+
+  BlockLabel:
+    text: "[b]REC[/b]"
+    font_size: self.height
+    markup: True
+    color: rec_color_active if app.is_recording else rec_color_inactive
+    size_hint: .2, 1
+  
 
 <MenuScreen>:
   BoxLayout:
-    Button:
+    orientation: 'vertical'
+    ScreenChooserSpinner:
+      name: 'Menu'
+      values: app.screens.values()
+      text: 'Change Screen'
+      size_hint: .2, 1
+      on_text: self.change_screen() 
+    BlockButton:
       text: 'Goto Clock'
-      on_press: root.manager.current = 'settings'
-    Button:
-      text: 'Quit'
+      on_press: root.manager.current = 'clock'
+    BlockButton:
+      text: 'Goto Timer'
+      on_release: root.manager.current = 'timer'
 
-<SettingsScreen>:
+<LiveTVScreen>:
   BoxLayout:
     orientation: 'vertical'
-    spacing: 0
+    spacing: 8
+    padding: 5, 0, 5, 0
 
-    BoxLayout:
-      orientation: 'horizontal'
-      spacing: 0
-      padding: 0
-      size_hint: 1, .1
+    StatusBar:
+      size_hint: 1, .15
 
-      BlockButton:
-        text: "Play" if app.is_replay_active else "TV"
-        size_hint: .2, 1
-        on_release: root.manager.current = 'menu'
-
-      CenteredBlockLabel:
-        size_hint: .6, 1
-        text: time.strftime("%A, %d. %B %Y", app.localtime)
-
-      CenteredBlockLabel:
-        text: "[b]REC[/b]"
-        markup: True
-        color: rec_color_active if app.is_recording else rec_color_inactive
-        size_hint: .2, 1
-
-    CenteredBlockLabel:
-      id: clock
-      font_size: '480sp'
-      size_hint: 1, .6
-      text: time.strftime("%H:%M", app.localtime)
-
-    CenteredBlockLabel:
-      text: app.first_line
+    BlockLabel:
+      name: 'title1'
       shorten: True
       shorten_from: 'right'
-      text_size: self.width -10, None
-      size_hint: 1, .1
-
-    CenteredBlockLabel:
-      size_hint: 1, .1
-      text_size: self.width -10, None
-      shorten: True
-      shorten_from: 'right'
-      text: app.second_line
+      size_hint: 1, .15
+      text_size: self.size
+      font_size: self.height
+      text: time.strftime("%H:%M ", time.localtime(app.present_starttime)) + app.present_title
 
     ProgressBar:
-      max: app.progress_max
-      value: app.progress_value
+      max: app.epg_progress_max
+      value: app.epg_progress_value
+      size_hint: 1, .01
+
+    BlockLabel:
+      size_hint: 1, .1
+      shorten: True
+      shorten_from: 'right'
+      halign: 'left'
+      text_size: self.size
+      font_size: self.height - 1
+      text: app.present_shorttext
+    Label:
+      size_hint: 1, .20
+      halign: 'left'
+      valign: 'top'
+      #shorten: True
+      shorten_from: 'right'
+      text: app.present_description
+      text_size: self.size
+      font_size: self.height / 6
+
+    BlockLabel:
+      size_hint: 1, .15
+      valign: 'top'
+      shorten: True
+      shorten_from: 'right'
+      text_size: self.size
+      font_size: self.height
+      text: time.strftime("%H:%M ", time.localtime(app.following_starttime)) + app.following_title
+
+    BlockLabel:
+      size_hint: 1, .1
+      shorten: True
+      shorten_from: 'right'
+      valign: 'top'
+      halign: 'left'
+      text_size: self.size
+      font_size: self.height - 1
+      text: app.following_shorttext
+    Label:
+      size_hint: 1, .20
+      halign: 'left'
+      valign: 'top'
+      #shorten: True
+      shorten_from: 'right'
+      text: app.following_description
+      text_size: self.size
+      font_size: self.height / 6
+
+<ReplayScreen>:
+  BoxLayout:
+    orientation: 'vertical'
+    spacing: 5
+
+    StatusBar:
+      size_hint: 1, .18
+
+    CenteredBlockLabel:
+      valign: 'top'
+      shorten: True
+      shorten_from: 'right'
+      text_size: self.size
+      font_size: self.height
+      size_hint: 1, .1
+      text: app.replay_name
+
+    CenteredBlockLabel:
+      size_hint: 1, .07
+      text: app.replay_event_shorttext
+
+    ProgressBar:
+      size_hint: 1, .01
+      max: app.replaycontrol_total
+      value: app.replaycontrol_current
+
+    Label:
+      text: app.replay_event_description
+      size_hint: 1, .5
+      halign: 'left'
+      valign: 'top'
+      text_size: self.size
+      font_size: self.height / 10
+
+      
+
+<TimerScreen>:
+  BoxLayout:
+    orientation: 'vertical'
+    spacing: 5
+
+    StatusBar:
+      size_hint: 1, .18
+
+    BoxLayout:
+      size_hint: 1, .8
+
+      BlockButton:
+        size_hint: 1, 1
+        text: 'Timer'
+
+
+<ClockScreen>:
+  BoxLayout:
+    orientation: 'vertical'
+    spacing: 5
+
+    StatusBar:
+      size_hint: 1, .18
+
+    CenteredBlockLabel:
+      id: 'time'
+      font_size: '480sp'
+      size_hint: 1, .6
+      text: app.now
+
+    CenteredBlockLabel:
+      text: app.channel_channelname
+      shorten: True
+      shorten_from: 'right'
+      text_size: self.width -10, None
+      size_hint: 1, .1
+
+    CenteredBlockLabel:
+      size_hint: 1, .1
+      text_size: self.width -10, None
+      shorten: True
+      shorten_from: 'right'
+      text: app.present_title
+
+    ProgressBar:
+      max: app.epg_progress_max if not app.replaycontrol_active else app.replaycontrol_total
+      value: app.epg_progress_value if not app.replaycontrol_active else app.replaycontrol_current
       size_hint: 1, .01
 
     BoxLayout:
       orientation: 'horizontal'
       spacing: 5
-      size_hint: 1, .2
+      size_hint: 1, .1
 
       CenteredBlockLabel:
-        text: app.starttime
+        text: datetime.fromtimestamp(app.present_starttime).strftime("%H:%M")
         size_hint: .2, 1
 
       CenteredBlockLabel:
         id: playstatus
-        text: "Pause" if (app.is_replay_active and not app.is_playing) else "{}/{} min".format(app.progress, app.duration)
+        text: "" # Pause" if (app.replaycontrol_active and not app.replaycontrol_play) else "Playing"
         shorten: True
         shorten_from: 'right'
         text_size: self.width -10, None
         size_hint: .6, 1
         
       CenteredBlockLabel:
-        text: app.endtime
+        text: datetime.fromtimestamp(app.present_endtime).strftime("%H:%M")
         size_hint: .2, 1
