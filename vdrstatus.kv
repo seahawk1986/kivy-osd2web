@@ -25,21 +25,27 @@
 <StatusBar@BoxLayout>:
     orientation: 'horizontal'
     spacing: 5
-    padding: 0, 5, 0, 5
+    #padding: 0, 5, 0, 5
 
     ScreenChooser:
         size_hint: .2, 1
 
-    BlockLabel:
+    Label:
+        canvas:
+            Color:
+                rgba: 0, 1, 0, 0.5
+            Rectangle:
+                pos: self.pos
+                size: self.size
         id: date_label
         size_hint: .6, 1
-        #text_size: self.size
-        font_size: self.height
+        text_size: self.size
+        font_size: self.height * 0.4
         halign: 'center'
         valign: 'center'
-        max_lines: 1
-        shorten: True
-        shorten_from: 'right'
+        #max_lines: 1
+        #shorten: True
+        #shorten_from: 'right'
         text: app.datetime
 
     BlockLabel:
@@ -185,7 +191,7 @@
                 font_size: self.height / 6
 
         ProgressBar:
-            size_hint: 1, .01
+            size_hint: 1, .02
             max: app.epg_progress_max
             value: app.epg_progress_value
 
