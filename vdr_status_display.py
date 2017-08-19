@@ -129,6 +129,12 @@ class VDRStatusAPP(App, osd2webData):
         else:
             update_function(data)
 
+        if self.skin_attached is True and self.sm.current != 'menu':
+            self.last_screen = self.sm.current
+            self.sm.current = 'menu'
+        elif self.skin_attached is False:
+            self.sm.current = self.last_screen
+
     def update_clock(self, *args):
         self.localtime = time.localtime()
         now = datetime.now()
@@ -150,6 +156,7 @@ class VDRStatusAPP(App, osd2webData):
         config.setdefaults(
             'skin',
             {
+                'default_screen': 'clock',
                 'rec_color_active': [1, 0.1, 0.1, 0.1],
                 'rec_color_inactive': [0.3, 0.3, 0.3, 0.7],
             }
@@ -166,6 +173,7 @@ class VDRStatusAPP(App, osd2webData):
             self.config.get('skin', 'rec_color_active'))
         self.rec_color_inactive = ast.literal_eval(
             self.config.get('skin', 'rec_color_inactive'))
+        self.last_screen = self.config.get('skin', 'default_screen')
         return self.sm
 
 if __name__ == '__main__':
