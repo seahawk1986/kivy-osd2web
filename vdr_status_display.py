@@ -74,16 +74,6 @@ class ScreenChooserSpinner(Spinner):
         self.text = 'Change Screen'
 
 
-
-
-class MyLayout(BoxLayout):
-    pass
-
-
-class StatusBar(BoxLayout):
-    pass
-
-
 class VDRStatusAPP(App, osd2webData):
     pp = pprint.PrettyPrinter(indent=4)
 
@@ -110,15 +100,17 @@ class VDRStatusAPP(App, osd2webData):
                 'recordings': self.update_recordings,
                 'replay': self.update_replay,
                 'replaycontrol': self.update_replaycontrol,
-                'rolechange': None,
-                'skinstate': None,
+                'rolechange': self.update_rolechange,
+                'skinstate': self.update_skinstate,
                 'timers': self.update_timers,
+                'buttons': self.update_buttons,
                 }
 
         super(VDRStatusAPP, self).__init__()
         Clock.schedule_interval(self.update_clock, 1)
 
     def update_data(self, name, data):
+        # TODO: move to update_* functions if really needed
         if isinstance(data, dict):
             data = flatten_json(data)
         elif isinstance(data, list):

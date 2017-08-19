@@ -71,15 +71,10 @@ class ActualData(object):
     def update_actual(self, data):
         for key, value in data.iteritems():
             setattr(self, key, value)
-            print(key, ':', value)
 
         now = int(time.time()) # seconds since epoch
-        print('progress_time:', self.present_seen,
-              'epoch_time:', now)
         self.epg_progress_max = self.present_duration #  self.present_endtime - self.present_starttime
         self.epg_progress_value = now - self.present_starttime
-        print('duration:', self.epg_progress_max,
-              'progress:', self.epg_progress_value)
 
 
 class ReplayData(object):
@@ -161,16 +156,50 @@ class RecordingsData(object):
 
 class CustomData(object):
     customdata = DictProperty({})
+
     def update_customdata(self, data):
         for key, value in data.items():
             k = 'custom_' + key
             if not hasattr(self, k):
-                print("new value!", k)
+                print("new key", k, "with value", value)
             setattr(self.customdata, k, value)
+
+
+class RolechangeData(object):
+    rolechange = DictProperty({})
+
+    def update_rolechange(self, data):
+        for key, value in data.items():
+            k = 'rolechange_' + key
+            if not hasattr(self, k):
+                print("new key", k, "with value", value)
+            setattr(self.customdata, k, value)
+
+
+class SkinstateData(object):
+    skin_attached = BooleanProperty()
+    skin_attached = False
+
+    def update_skinstate(self, data):
+        self.skin_attached = bool(data.get('attached', 0))
+
+
+class ButtonsData(object):
+    btn_red = StringProperty("")
+    btn_green = StringProperty("")
+    btn_yellow = StringProperty("")
+    btn_blue = StringProperty("")
+    def update_buttons(self, data):
+        for btn in ('red', 'green', 'yellow', 'blue'):
+            setattr(self, 'btn_' + btn, data.get(btn, ''))
+
 # TODO:
-# data for rolechange:
-# data for skinstate:
+# data for menu
+# data for menuitem
+# data for clearmenu
+
+
 class osd2webData(
         ActualData, ReplayData, ReplayControlData, TimerData, RecordingsData,
-        CustomData):
+        CustomData, RolechangeData, SkinstateData, ButtonsData):
     pass
