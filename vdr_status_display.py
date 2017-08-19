@@ -20,6 +20,7 @@ from kivy.properties import NumericProperty, ObjectProperty, StringProperty, \
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.label import Label
+from kivy.uix.recycleview import RecycleView
 from kivy.uix.spinner import Spinner
 from twisted.python import log
 from twisted.internet import reactor
@@ -27,7 +28,7 @@ from autobahn.twisted.websocket import connectWS
 
 from osd2web_data import osd2webData, flatten_json
 from screens import MyScreenManager, MenuScreen, LiveTVScreen, ReplayScreen, \
-                    TimerScreen, ClockScreen
+                    TimerScreen, RecordingsScreen, ClockScreen
 from websocket import WSClientFactory
 
 
@@ -73,6 +74,23 @@ class ScreenChooserSpinner(Spinner):
             app.sm.current = self.text
         self.text = 'Change Screen'
 
+class TimerLabel(Label):
+    pass
+
+
+class RecordingLabel(Label):
+    pass
+
+
+class TimerRV(RecycleView):
+
+    def __init__(self, **kwargs):
+        super(TimerRV, self).__init__(**kwargs)
+        self.data = app.timers
+
+class RecordingRV(RecycleView):
+    pass
+ 
 
 class VDRStatusAPP(App, osd2webData):
     pp = pprint.PrettyPrinter(indent=4)
@@ -81,7 +99,8 @@ class VDRStatusAPP(App, osd2webData):
             (ClockScreen, 'clock'),
             (LiveTVScreen, 'livetv'),
             (ReplayScreen, 'replay'),
-            (TimerScreen, 'timer'),
+            (TimerScreen, 'timers'),
+            (RecordingsScreen, 'recordings'),
             (MenuScreen, 'menu'),
             ])
 

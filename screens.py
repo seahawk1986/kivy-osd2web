@@ -18,6 +18,8 @@ class ReplayScreen(Screen):
 class TimerScreen(Screen):
     pass
 
+class RecordingsScreen(Screen):
+    pass
 
 class ClockScreen(Screen):
     pass

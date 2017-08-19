@@ -142,16 +142,33 @@ class TimerData(object):
     timers = ListProperty([])
 
     def update_timers(self, data):
-        self.timer = [flatten_json(timer) for timer in data]
+        print([timer for timer in data])
+        self.timers = [
+            {'text': "\n".join((
+                time.strftime("%a, %d %B %Y %H:%M",
+                              time.localtime(timer.get('starttime'))) + ' ' + timer.get('channel_channelname'),
+                '[size=30]' + timer.get('event_title') + '[/size]',
+            )),
+             'halign': 'left',
+             'valign': 'top',
+        } for timer in data]
         self.is_recording = any(bool(timer.get('event_isrunning', False))
-                                for timer in self.timers)
+                                for timer in data)
 
 
 class RecordingsData(object):
     recordings = ListProperty([])
+
     def update_recordings(self, data):
         #TODO update recordig info
-        self.recordings = [flatten_json(recording) for recording in data]
+        self.recordings = [
+            {'text': "\n".join((
+                time.strftime("%a, %d %B %Y %H:%M", time.localtime(recording.get('event_starttime'))),
+                '[size=30]' +recording.get('name') + '[/size]',
+                )),
+             'halign': 'left',
+             'valign': 'top',
+            } for recording in data]
 
 
 class CustomData(object):

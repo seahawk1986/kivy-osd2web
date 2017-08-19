@@ -1,6 +1,10 @@
 #:kivy 1.9.0
 #:import datetime datetime.datetime
 #:import time time
+#:import SimpleListAdapter kivy.adapters.simplelistadapter.SimpleListAdapter
+#:import Label kivy.uix.label.Label
+#:import TimerLabel vdr_status_display.TimerLabel
+#:import RecordingLabel vdr_status_display.RecordingLabel
 
 <CenteredBlockLabel@BlockLabel>:
     font_size: self.height - 2
@@ -55,6 +59,65 @@
         color: app.rec_color_active if app.is_recording else app.rec_color_inactive
         size_hint: .2, 1
 
+
+<TimerLabel>:
+    canvas:
+        Color:
+            rgba: 0, 1, 0, 0.5
+        Rectangle:
+            pos: self.pos
+            size: self.size           
+    size_hint: 1, None
+    #height: "120sp"
+    #size: self.texture_size
+    text_size: self.width, None
+    font_size: (self.height - 15) / 2
+    valign: 'top'
+    halign: 'left'
+    markup: True
+        
+<TimerRV>:
+    viewclass: 'TimerLabel'
+    data: app.timers
+
+    RecycleBoxLayout:
+        default_size: None, dp(56)
+        default_size_hint: 1, None
+        size_hint_y: None
+        height: self.minimum_height
+        orientation: 'vertical'
+        padding: 5
+        spacing: 10
+
+<RecordingLabel>:
+    canvas:
+        Color:
+            rgba: 0, 1, 0, 0.5
+        Rectangle:
+            pos: self.pos
+            size: self.size           
+    #height: sp(140)
+    size_hint: 1, None
+    #size: self.texture_size
+    text_size: self.width, None
+    font_size: (self.height - 15) / 2
+    valign: 'top'
+    halign: 'left'
+    markup: True
+
+<RecordingRV>:
+    viewclass: 'RecordingLabel'
+    data: app.recordings
+    halign: 'left'
+    RecycleBoxLayout:
+        default_size: None, dp(56)
+        default_size_hint: 1, None
+        size_hint_y: None
+        height: self.minimum_height
+        orientation: 'vertical'
+        spacing: 5
+        padding: 5
+        halign: 'left'
 
 <MenuScreen>:
     BoxLayout:
@@ -270,13 +333,19 @@
         StatusBar:
             size_hint: 1, .18
 
-        BoxLayout:
+        TimerRV:
             size_hint: 1, .8
 
-            BlockButton:
-                size_hint: 1, 1
-                text: 'Timer'
+<RecordingsScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        spacing: 5
 
+        StatusBar:
+            size_hint: 1, .18
+
+        RecordingRV:
+            size_hint: 1, .8
 
 <ClockScreen>:
     BoxLayout:
