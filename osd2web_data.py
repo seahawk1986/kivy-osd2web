@@ -1,6 +1,6 @@
 from __future__ import print_function
+import pprint
 import time
-from datetime import timedelta, datetime
 from kivy.uix.widget import Widget
 from kivy.properties import NumericProperty, ObjectProperty, StringProperty, \
                             BooleanProperty, DictProperty, ListProperty
@@ -67,18 +67,19 @@ class ActualData(object):
 
     epg_progress_max = NumericProperty(0)
     epg_progress_value = NumericProperty(0)
-    time_delta = 0
 
     def update_actual(self, data):
         for key, value in data.iteritems():
             setattr(self, key, value)
-            if key.startswith('present_'):
-                print(key, value)
+            print(key, ':', value)
 
-        self.time_delta = self.present_seen - int(time.time())
-        print("seconds delta to epg clock:", self.time_delta)
-        self.epg_progress_max = self.present_endtime - self.present_starttime
-        self.epg_progress_value = self.present_seen - self.present_starttime
+        now = int(time.time()) # seconds since epoch
+        print('progress_time:', self.present_seen,
+              'epoch_time:', now)
+        self.epg_progress_max = self.present_duration #  self.present_endtime - self.present_starttime
+        self.epg_progress_value = now - self.present_starttime
+        print('duration:', self.epg_progress_max,
+              'progress:', self.epg_progress_value)
 
 
 class ReplayData(object):
@@ -122,7 +123,6 @@ class ReplayData(object):
             if not hasattr(self, k):
                 print("new value!", k)
             setattr(self, k, value)
-            #print(k, value)
 
 
 class ReplayControlData(object):
@@ -139,19 +139,17 @@ class ReplayControlData(object):
     def update_replaycontrol(self, data):
         for key, value in data.items():
             k = 'replaycontrol_' + key
-            print(k, value)
             setattr(self, k, value)
+
 
 class TimerData(object):
     is_recording = BooleanProperty(False)
-    timer = ListProperty([])
+    timers = ListProperty([])
 
-    def update_timer(self, data):
-        #TODO update timer list
-        print(data)
+    def update_timers(self, data):
         self.timer = [flatten_json(timer) for timer in data]
-        self.is_recording = any(bool(timer['event']['isrunning']) for timer in self.data.get('timers', []))
-        print(self.timer)
+        self.is_recording = any(bool(timer.get('event_isrunning', False))
+                                for timer in self.timers)
 
 
 class RecordingsData(object):
@@ -159,13 +157,20 @@ class RecordingsData(object):
     def update_recordings(self, data):
         #TODO update recordig info
         self.recordings = [flatten_json(recording) for recording in data]
-        print(self.recordings)
 
+
+class CustomData(object):
+    customdata = DictProperty({})
+    def update_customdata(self, data):
+        for key, value in data.items():
+            k = 'custom_' + key
+            if not hasattr(self, k):
+                print("new value!", k)
+            setattr(self.customdata, k, value)
 # TODO:
 # data for rolechange:
 # data for skinstate:
-# data for customdata:
 class osd2webData(
         ActualData, ReplayData, ReplayControlData, TimerData, RecordingsData,
-        ):
+        CustomData):
     pass

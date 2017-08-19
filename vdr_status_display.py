@@ -5,6 +5,7 @@ from collections import OrderedDict
 from kivy.support import install_twisted_reactor
 install_twisted_reactor()
 import argparse
+import ast
 from datetime import datetime, timedelta
 import json
 import locale
@@ -16,78 +17,18 @@ from kivy.clock import Clock
 from kivy.config import Config
 from kivy.properties import NumericProperty, ObjectProperty, StringProperty, \
                             BooleanProperty, DictProperty, ListProperty
-from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
-from kivy.uix.image import AsyncImage
 from kivy.uix.label import Label
 from kivy.uix.spinner import Spinner
 from twisted.python import log
 from twisted.internet import reactor
-from twisted.internet.protocol import ReconnectingClientFactory
-from autobahn.twisted.websocket import WebSocketClientFactory, \
-                                       WebSocketClientProtocol, \
-                                       connectWS
+from autobahn.twisted.websocket import connectWS
+
 from osd2web_data import osd2webData, flatten_json
-
-
-### Websocket Client ###
-LOGIN = json.dumps(
-        {
-            'event': 'login',
-            'object': {'type': 1}
-        }).encode('utf-8')
-LOGOUT = json.dumps(
-        {
-            'event': 'logout',
-            'object': {}
-        }).encode('utf-8')
-
-class MyClientProtocol(WebSocketClientProtocol):
-
-   def onConnect(self, response):
-       print("Server connected: {0}".format(response.peer))
-       self.factory.resetDelay()
-
-   def onOpen(self):
-       self.sendMessage(LOGIN)
-
-   def onClose(self):
-       self.sendMessage(LOGOUT)
-
-   def onMessage(self, payload, isBinary):
-      if isBinary:
-         #print("Binary message received: {0} bytes".format(len(payload)))
-         pass
-      else:
-         data = json.loads(payload.decode('utf-8'))
-         name = data['event']
-         dat = data['object']
-         app.update_data(name, dat)
-
-   def onClose(self, wasClean, code, reason):
-       print("connection closed")
-       print(wasClean, code, reason)
-
-
-class MyClientFactory(WebSocketClientFactory, ReconnectingClientFactory):
-
-    protocol = MyClientProtocol
-
-    def __init__(self, app, *args, **kwargs):
-        self.app = app
-        super(MyClientFactory, self).__init__(*args, **kwargs)
-
-    def clientConnectionLost(self, connector, reason):
-        print("connection lost", reason)
-        self.retry(connector)
-
-    def clientConnectionFailed(self, connector, reason):
-        print("connection failed", reason)
-        self.retry(connector)
-
-
-### End of Websocket Code ###
+from screens import MyScreenManager, MenuScreen, LiveTVScreen, ReplayScreen, \
+                    TimerScreen, ClockScreen
+from websocket import WSClientFactory
 
 
 class BlockWidget(object):
@@ -133,35 +74,19 @@ class ScreenChooserSpinner(Spinner):
         self.text = 'Change Screen'
 
 
-class MenuScreen(Screen):
-    pass
-
-class LiveTVScreen(Screen):
-    pass
-
-class ReplayScreen(Screen):
-    pass
-
-class TimerScreen(Screen):
-    pass
-
-
-class ClockScreen(Screen):
-    pass
 
 
 class MyLayout(BoxLayout):
     pass
 
 
-class MyScreenManager(ScreenManager):
-    pass
-
 class StatusBar(BoxLayout):
     pass
 
+
 class VDRStatusAPP(App, osd2webData):
     pp = pprint.PrettyPrinter(indent=4)
+
     screens = OrderedDict([
             (ClockScreen, 'clock'),
             (LiveTVScreen, 'livetv'),
@@ -169,13 +94,27 @@ class VDRStatusAPP(App, osd2webData):
             (TimerScreen, 'timer'),
             (MenuScreen, 'menu'),
             ])
+
     channelname = StringProperty("Welcome to yaVDR")
     localtime = ObjectProperty(time.localtime())
-    now = ObjectProperty("00:00")
-    date = ObjectProperty("Carpe diem.")
-    datetime = ObjectProperty("day, dd:mm:YY 00:00")
+    now = StringProperty("00:00")
+    date = StringProperty("Carpe diem.")
+    datetime = StringProperty("day, dd:mm:YY 00:00")
+    rec_color_active = ListProperty([1, .1, .1, 1])
+    rec_color_inactive = ListProperty([.3, .3, .3, .7])
 
     def __init__(self, *args, **kwargs):
+        self.update_register = {
+                'actual': self.update_actual,
+                'customdata': self.update_customdata,
+                'recordings': self.update_recordings,
+                'replay': self.update_replay,
+                'replaycontrol': self.update_replaycontrol,
+                'rolechange': None,
+                'skinstate': None,
+                'timers': self.update_timers,
+                }
+
         super(VDRStatusAPP, self).__init__()
         Clock.schedule_interval(self.update_clock, 1)
 
@@ -189,23 +128,10 @@ class VDRStatusAPP(App, osd2webData):
                     item = flatten_json(item)
                 flattened_items.append(item)
             data = flattened_items
-        #self.pp.pprint(data)
-        # data for rolechange:
-        # data for skinstate:
-        # data for customdata:
-        # data for recordings:
 
-        update_register = {
-                'replay': self.update_replay,
-                'replaycontrol': self.update_replaycontrol,
-                'timer': self.update_timer,
-                'recordings': self.update_recordings,
-                'actual': self.update_actual,
-                }
-
-        update_function = update_register.get(name, None)
+        update_function = self.update_register.get(name, None)
         if update_function is None:
-            print(name)
+            print("unhandled event:", name)
             #self.update_vars(data)
             self.pp.pprint(data)
         else:
@@ -220,22 +146,34 @@ class VDRStatusAPP(App, osd2webData):
         if self.replaycontrol_active and self.replaycontrol_play:
             self.replaycontrol_current += 1
             print(self.replaycontrol_current)
-        self.epg_progress_value = int(time.time()) - self.present_starttime + self.time_delta
+        self.epg_progress_value = int(time.time()) - self.present_starttime
 
     def build_config(self, config):
-        config.setdefaults('connection', {
-            'host': 'localhost',
-            'port': 4444
-        })
-
+        config.setdefaults(
+            'connection',
+            {
+                'host': 'localhost',
+                'port': 4444,
+            })
+        config.setdefaults(
+            'skin',
+            {
+                'rec_color_active': [1, 0.1, 0.1, 0.1],
+                'rec_color_inactive': [0.3, 0.3, 0.3, 0.7],
+            }
+        )
     def build(self):
         self.sm = MyScreenManager()
         for screen_class, screen_name in self.screens.iteritems():
             self.sm.add_widget(screen_class(name=screen_name))
         url = "ws://{}:{}".format(self.config.get('connection', 'host'),
                                   self.config.getint('connection', 'port'))
-        factory = MyClientFactory(self, url=url, protocols=['osd2vdr'])
+        factory = WSClientFactory(self, url=url, protocols=['osd2vdr'])
         connectWS(factory)
+        self.rec_color_active = ast.literal_eval(
+            self.config.get('skin', 'rec_color_active'))
+        self.rec_color_inactive = ast.literal_eval(
+            self.config.get('skin', 'rec_color_inactive'))
         return self.sm
 
 if __name__ == '__main__':
