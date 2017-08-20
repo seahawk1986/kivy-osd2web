@@ -7,6 +7,18 @@
 #:import urlencode urllib.urlencode
 #:import quote urllib.quote
 
+<ScrollableLabel@ScrollView>:
+    text: ''
+    font_size: self.height / 10
+    font_name: 'RobotoCondensed-Regular'
+    Label:
+        size_hint_y: None
+        height: self.texture_size[1]
+        text_size: self.width, None
+        text: root.text
+        font_size: root.font_size
+        font_name: root.font_name
+
 <CenteredBlockLabel@BlockLabel>:
     font_size: self.height - 2
     text_size: self.size
@@ -349,7 +361,7 @@
                 shorten_from: 'right'
                 halign: 'center'
                 valign: 'center'
-                color: [1, .1, .1, 1] if app.osd_message else [1,1,1,1]
+                color: [1, .1, .1, 1] if app.osd_message else [1, 1, 1, 1]
             MenuRV:
                 id: menu_view
                 size_hint: 1, .75
@@ -400,11 +412,13 @@
                 on_release: app.send_key('Menu')
             Button:
                 text: 'Rew.'
+                on_release: app.send_key('FastRew')
             Button:
-                text: 'Stop'
-                on_release: app.send_key('Stop')
+                text: 'Pause' if app.replaycontrol_play else 'Play'
+                on_release: app.send_key('Play/Pause')
             Button:
                 text: 'Fwd.'
+                on_release: app.send_key('FastFwd')
             KeypadButton:
                 text: '1'
                 on_release: app.send_key('1')
@@ -483,16 +497,14 @@
                 font_name: 'RobotoCondensed-Regular'
                 text: app.present_shorttext
                 color: [.9, .9, 1, 1]
-            Label:
+            ScrollableLabel:
                 size_hint: 1, .6
                 halign: 'left'
                 valign: 'top'
                 #shorten: True
                 shorten_from: 'right'
                 text: app.present_description
-                text_size: self.size
                 font_size: self.height / 6
-                font_name: 'RobotoCondensed-Regular'
 
         ProgressBar:
             size_hint: 1, .02
@@ -532,14 +544,12 @@
                 font_name: 'RobotoCondensed-Regular'
                 text: app.following_shorttext
                 color: [.9, .9, 1, 1]
-            Label:
+            ScrollableLabel:
                 size_hint: 1, .6
                 halign: 'left'
                 valign: 'top'
                 text: app.following_description
-                text_size: self.size
                 font_size: self.height / 6
-                font_name: 'RobotoCondensed-Regular'
 
 <RemoteButton@Button>:
     size_hint: 1, .25
@@ -575,13 +585,12 @@
             max: app.replaycontrol_total
             value: app.replaycontrol_current
 
-        Label:
+        ScrollableLabel:
             text: app.replay_event_description
             size_hint: 1, .5
             halign: 'left'
             valign: 'top'
-            text_size: self.size
-            font_size: self.height / 10
+            font_size: self.parent.height / 5
 
 
 
