@@ -135,7 +135,7 @@ class ReplayControlData(object):
         for key, value in data.items():
             k = 'replaycontrol_' + key
             setattr(self, k, value)
-        if self.replaycontrol_active and self.sm.current not in ('replay', 'remote'):
+        if self.replaycontrol_active and self.sm.current not in ('replay', 'remote', 'menu'):
             self.sm.current = 'replay'
             print("current screen:", self.sm.current)
         elif not self.replaycontrol_active and self.sm.current == 'replay':
