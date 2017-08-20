@@ -1,80 +1,678 @@
 #:kivy 1.9.0
+#:import datetime datetime.datetime
 #:import time time
-# Color for recording label
-#:set rec_color_active [1, .1, .1, 1]
-#:set rec_color_inactive [.3, .3, .3, .7]
+#:import SimpleListAdapter kivy.adapters.simplelistadapter.SimpleListAdapter
+#:import Label kivy.uix.label.Label
+#:import Factory kivy.factory.Factory
+#:import urlencode urllib.urlencode
+#:import quote urllib.quote
+
+<ScrollableLabel@ScrollView>:
+    text: ''
+    font_size: self.height / 10
+    font_name: 'RobotoCondensed-Regular'
+    Label:
+        size_hint_y: None
+        height: self.texture_size[1]
+        text_size: self.width, None
+        text: root.text
+        font_size: root.font_size
+        font_name: root.font_name
 
 <CenteredBlockLabel@BlockLabel>:
-  font_size: "480sp"
-  halign: 'center'
-  valign: 'middle'
+    font_size: self.height - 2
+    text_size: self.size
+    halign: 'center'
+    valign: 'middle'
 
-<MyLayout>:
-  orientation: 'vertical'
-  spacing: 0
+<CenteredBlockButton@BlockButton>:
+    font_size: self.height
+    halign: 'center'
+    valign: 'middle'
 
-  BoxLayout:
-    orientation: 'horizontal'
-    spacing: 0
-    padding: 0
+<ChannelLogo@AsyncImage>:
+    source:
+        "http://%s:%s/data/channellogo?name=%s&id=%s" % (\
+        app.config.get('connection', 'host'), app.config.get('connection', 'port'),\
+        quote(app.channel_channelname), app.channel_channelid)\
+        if (app.rolechange_havelogos and app.channel_channelname) else 'icons/menu.png'
+    pos: self.parent.pos
+    halign: 'center'
+    valign: 'middle'
+    allow_stretch: True
+    size: self.parent.size
+
+
+<ScreenButton@Button>:
     size_hint: 1, .1
+    text_size: self.size
+    font_size: self.height * 0.6
+    valign: 'middle'
+    halign: 'center'
+    
 
-    CenteredBlockLabel:
-      text: "Play" if app.is_replay_active else "TV"
-      size_hint: .2, 1
+<ScreenChooserPopup@Popup>:
+    title: "Screens"
+    title_size: self.height / 10
+    title_align: 'center'
 
-    CenteredBlockLabel:
-      size_hint: .6, 1
-      text: time.strftime("%A, %d. %B %Y", app.localtime)
+    BoxLayout:
+        orientation: 'vertical'
+        spacing: 10
+        GridLayout:
+            size_hint: 1, .8
+            columns: 2
+            rows: 3
+            spacing: 10
+                
+            ScreenButton:
+                text: 'Timer'
+                on_release: app.change_screen('timers', root)
+            ScreenButton:
+                text: 'Recordings'
+                on_release: app.change_screen('recordings', popup=root)
 
-    CenteredBlockLabel:
-      text: "[b]REC[/b]"
-      markup: True
-      color: rec_color_active if app.is_recording else rec_color_inactive
-      size_hint: .2, 1
+            ScreenButton:
+                text: 'Live-TV'
+                on_release: app.change_screen(screen='livetv', popup=root)
 
-  CenteredBlockLabel:
-    id: clock
-    font_size: '480sp'
-    size_hint: 1, .6
-    text: time.strftime("%H:%M", app.localtime)
+            ScreenButton:
+                text: 'Replay'
+                on_release: app.change_screen(screen='replay', popup=root)
 
-  CenteredBlockLabel:
-    text: app.first_line
-    shorten: True
-    shorten_from: 'right'
-    text_size: self.width -10, None
-    size_hint: 1, .1
+            ScreenButton:
+                text: 'Clock'
+                on_release: app.change_screen(screen='clock', popup=root)
 
-  CenteredBlockLabel:
-    size_hint: 1, .1
-    text_size: self.width -10, None
-    shorten: True
-    shorten_from: 'right'
-    text: app.second_line
-
-  ProgressBar:
-    max: app.progress_max
-    value: app.progress_value
-    size_hint: 1, .01
-
-  BoxLayout:
+            ScreenButton:
+                text: 'Remote'
+                on_release: app.change_screen(screen='menu', popup=root)
+        
+        ScreenButton:
+            size_hint: 1, .2
+            text: 'Close'
+            on_release: root.dismiss()
+            
+    
+<StatusBar@BoxLayout>:
     orientation: 'horizontal'
     spacing: 5
-    size_hint: 1, .2
 
-    CenteredBlockLabel:
-      text: app.starttime
-      size_hint: .2, 1
+    Button:
+        size_hint: .2, 1
+        #text: channellogo.source
+        halign: 'center'
+        valign: 'middle'
+        text_size: self.size
+        background_color: [.1, .1, .1, 1]
+        on_release: Factory.ScreenChooserPopup().open()
+        ChannelLogo:
+            id: channellogo
+        
 
-    CenteredBlockLabel:
-      id: playstatus
-      text: "Pause" if (app.is_replay_active and not app.is_playing) else "{}/{} min".format(app.progress, app.duration)
-      shorten: True
-      shorten_from: 'right'
-      text_size: self.width -10, None
-      size_hint: .6, 1
-      
-    CenteredBlockLabel:
-      text: app.endtime
-      size_hint: .2, 1
+    Label:
+        canvas.before:
+            Color:
+                rgba: .1, .1, .1, 0.5
+            Rectangle:
+                pos: self.pos
+                size: self.size
+        id: date_label
+        size_hint: .6, 1
+        text_size: self.size
+        font_size: self.height * 0.4
+        halign: 'center'
+        valign: 'center'
+        font_name: 'DejaVuSans' # 'RobotoMono-Regular.ttf'
+        text: app.datetime
+
+    BlockLabel:
+        text: "[b]REC[/b]"
+        font_size: self.height
+        markup: True
+        color: app.rec_color_active if app.is_recording else app.rec_color_inactive
+        size_hint: .2, 1
+
+
+<TimerEntry@BoxLayout>:
+    date_text: "dd.mm.yy"
+    time_text: "00:00"
+    title_text: "Mankells Wallander: Vor dem Frost"
+    channel_text: "Das Erste HD"
+    duration_text: "90'"
+    is_recording: False
+    spacing: 5
+    canvas.before:
+        Color:
+            rgba: .1, .1, .1, 0.5
+        Rectangle:
+            pos: self.pos
+            size: self.size      
+    BoxLayout:
+        size_hint: .1, 1
+        orientation: 'vertical'
+        CenterLabel:
+            size_hint: 1, .5
+            font_size: self.height * 0.5
+            text: root.date_text
+        CenterLabel:
+            size_hint: 1, .5
+            font_size: self.height * 0.8
+            text: root.time_text
+
+    LeftLabel:
+        size_hint: .70, 1
+        font_size: self.height * 0.5
+        text: root.title_text
+        shorten: True
+        shorten_from: 'right'
+        color: app.rec_color_active if root.is_recording else [1, 1, 1, 1]
+
+    RightLabel:
+        size_hint: .07, 1
+        text: root.duration_text
+        font_size: self.height * .5
+        shorten: True
+        shorten_from: 'right'
+        
+    LeftLabel:
+        size_hint: .13, 1
+        text: root.channel_text
+        font_size: self.height * 0.3
+        shorten: True
+        shorten_from: 'right'
+        
+<TimerRV@RecycleView>:
+    viewclass: 'TimerEntry'
+    data: app.timers
+
+    RecycleBoxLayout:
+        default_size: None, root.height / 10 #sp(80)
+        default_size_hint: 1, None
+        size_hint_y: None
+        height: self.minimum_height
+        orientation: 'vertical'
+        padding: 5
+        spacing: 10
+
+<LeftLabel@Label>:
+    text_size: self.size
+    halign: 'left'
+    valign: 'middle'
+    font_name: 'RobotoCondensed-Regular'
+
+<RightLabel@Label>:
+    text_size: self.size
+    halign: 'right'
+    valign: 'middle'
+    font_name: 'RobotoCondensed-Regular'
+
+<CenterLabel@Label>:
+    text_size: self.size
+    halign: 'center'
+    valign: 'middle'
+    font_name: 'RobotoCondensed-Regular'
+
+<RecordingEntry@BoxLayout>:
+    date_text: "dd.mm.yy"
+    time_text: "00:00"
+    title_text: "Mankells Wallander: Vor dem Frost"
+    duration_text: "0'"
+    is_recording: False
+    size_hint: 1, .1
+    height: root.height
+    spacing: 10
+    canvas.before:
+        Color:
+            rgba: .1, .1, .1, 0.5
+        Rectangle:
+            pos: self.pos
+            size: self.size      
+    BoxLayout:
+        size_hint: .1, 1
+        orientation: 'vertical'
+        CenterLabel:
+            size_hint: 1, .5
+            font_size: self.height * 0.5
+            text: root.date_text
+        CenterLabel:
+            size_hint: 1, .5
+            font_size: self.height * 0.8
+            text: root.time_text
+
+    LeftLabel:
+        size_hint: .85, 1
+        font_size: self.height * 0.5
+        text: root.title_text
+        shorten: True
+        shorten_from: 'right'
+        color: app.rec_color_active if root.is_recording else [1, 1, 1, 1]
+
+    RightLabel:
+        size_hint: .06, 1
+        text: root.duration_text
+        font_size: self.height * .5
+        shorten: True
+        shorten_from: 'right'
+        
+<RecordingRV@RecycleView>:
+    viewclass: 'RecordingEntry'
+    data: app.recordings
+    halign: 'left'
+    RecycleBoxLayout:
+        default_size: None, root.height / 10 #sp(56)
+        height: root.height
+        default_size_hint: 1, None
+        size_hint_y: None
+        height: self.minimum_height
+        orientation: 'vertical'
+        spacing: 5
+        padding: 5
+        halign: 'left'
+
+<ColorButtonBox@BoxLayout>:
+    orientation: 'horizontal'
+    
+    DirectionButton:
+        id: red
+        text: app.btn_red
+        background_color: [1, .1, .1, 1]
+        on_release: app.send_key('Red')
+        text_size: self.size
+        font_size: self.height * 0.4
+    DirectionButton:
+        id: green
+        text: app.btn_green
+        background_color: .1, 1, .1, 1
+        on_release: app.send_key('Green')
+    DirectionButton:
+        id: yellow
+        text: app.btn_yellow
+        background_color: 1, 1, .1, 1
+        on_release: app.send_key('Yellow')
+    DirectionButton:
+        id: blue
+        text: app.btn_blue
+        background_color: .1, .1, 1, 1
+        on_release: app.send_key('Blue')
+
+<MenuButton@Button>:
+    selectable: False
+    selected: False
+    index: 0
+    selectable: self.selectable
+    background_color: [1, .1, .1, .1, 1] if (self.selected == 1) else [.2, .2, .2, 1]
+    #on_selected: print(self.parent.ids)  # menu_view.scroll_to(self)
+    halign: 'left'
+    valign: 'center'
+    text_size: self.size
+    font_size: self.height * .9
+    shorten: True
+    shorten_from: 'right'
+    on_release: app.activate_menu_entry(self.index, self.selected)
+    font_name: 'RobotoCondensed-Regular'
+
+<MenuRV@RecycleView>:
+    viewclass: 'MenuButton'
+    data: app.menu_list
+    halign: 'left'
+    #on_data: self.scroll_to_selected()
+    RecycleBoxLayout:
+        id: menu_view
+        default_size: None, root.height / 15
+        height: root.height
+        default_size_hint: 1, None
+        size_hint_y: None
+        height: self.minimum_height
+        orientation: 'vertical'
+        spacing: 5
+        padding: 5
+        halign: 'left'
+    
+<KeypadButton@Button>:
+    text_size: self.size
+    font_size: self.height * .8
+    halign: 'center'
+    valign: 'center'
+    font_name: 'RobotoCondensed-Regular'
+
+<DirectionButton@Button>:
+    text_size: self.size
+    font_size: self.height * .5
+    halign: 'center'
+    valign: 'center'
+    font_name: 'RobotoCondensed-Regular'
+
+<MenuScreen>:
+    id: menu
+    BoxLayout:
+        orientation: 'horizontal'
+        BoxLayout:
+            size_hint: .7, 1
+            orientation: 'vertical'
+            StatusBar:
+                size_hint: 1, .1
+            Label:
+                text: app.osd_message if app.osd_message else app.menu_title
+                size_hint: 1, .05
+                font_size: self.height * .9
+                text_size: self.size
+                shorten: True
+                shorten_from: 'right'
+                halign: 'center'
+                valign: 'center'
+                color: [1, .1, .1, 1] if app.osd_message else [1, 1, 1, 1]
+            MenuRV:
+                id: menu_view
+                size_hint: 1, .75
+                        
+            ColorButtonBox:
+                size_hint: 1, .1  
+                    
+        GridLayout:
+            size_hint: .3, 1
+            cols: 3
+            rows: 10
+            spacing: 5
+            Button:
+                text: 'Chan+'
+                on_release: app.send_key('Channel+')
+            Button:
+                text: 'Mute'
+                on_release: app.send_key('Mute')
+            Button:
+                text: 'Vol+'
+                on_release: app.send_key('Volume-')
+            Button:
+                text: 'Chan-'
+                on_release: app.send_key('Channel-')
+            DirectionButton:
+                text: 'Up'
+                on_release: app.send_key('Up')
+            Button:
+                text: 'Vol-'
+                on_release: app.send_key('Volume-')
+            DirectionButton:
+                text: 'Left'
+                on_release: app.send_key('Left')
+            DirectionButton:
+                text: 'OK'
+                on_release: app.send_key('Ok')
+            DirectionButton:
+                text: 'Right'
+                on_release: app.send_key('Right')
+            DirectionButton:
+                text: 'Back'
+                on_release: app.send_key('Back')
+            DirectionButton:
+                text: 'Down'
+                on_release: app.send_key('Down')
+            DirectionButton:
+                text: 'Menu'
+                on_release: app.send_key('Menu')
+            Button:
+                text: 'Rew.'
+                on_release: app.send_key('FastRew')
+            Button:
+                text: 'Pause' if app.replaycontrol_play else 'Play'
+                on_release: app.send_key('Play/Pause')
+            Button:
+                text: 'Fwd.'
+                on_release: app.send_key('FastFwd')
+            KeypadButton:
+                text: '1'
+                on_release: app.send_key('1')
+            KeypadButton:
+                text: '2'
+                on_release: app.send_key('2')
+            KeypadButton:
+                text: '3'
+                on_release: app.send_key('3')
+            KeypadButton:
+                text: '4'
+                on_release: app.send_key('4')
+            KeypadButton:
+                text: '5'
+                on_release: app.send_key('5')
+            KeypadButton:
+                text: '6'
+                on_release: app.send_key('6')
+            KeypadButton:
+                text: '7'
+                on_release: app.send_key('7')
+            KeypadButton:
+                text: '8'
+                on_release: app.send_key('8')
+            KeypadButton:
+                text: '9'
+                on_release: app.send_key('9')
+            Button:
+                text: 'User1'
+                on_release: app.send_key('User1')
+            KeypadButton:
+                text: '0'
+                on_release: app.send_key('0')
+            Button:
+                text: 'User2'
+                on_release: app.send_key('User2')
+
+<LiveTVScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        spacing: 5
+
+        StatusBar:
+            size_hint: 1, .18
+
+        BoxLayout:
+            size_hint: 1, .40
+            orientation: 'vertical'
+            #pacing: 10
+            BlockLabel:
+                name: 'title1'
+                shorten: True
+                shorten_from: 'right'
+                size_hint: 1, .25
+                text_size: self.size
+                font_size: self.height - 1
+                font_name: 'RobotoCondensed-Regular'
+                text:
+                    time.strftime('%H:%M ', time.localtime(app.present_starttime))\
+                    + app.present_title
+            BlockLabel:
+                canvas.before:
+                    Color:
+                        rgba: .1, .1, .1, 0.5
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size        
+                size_hint: 1, .15
+                height: root.height
+                shorten: True
+                shorten_from: 'right'
+                valign: 'top'
+                halign: 'left'
+                text_size: self.size
+                font_size: self.height - 1
+                font_name: 'RobotoCondensed-Regular'
+                text: app.present_shorttext
+                color: [.9, .9, 1, 1]
+            ScrollableLabel:
+                size_hint: 1, .6
+                halign: 'left'
+                valign: 'top'
+                #shorten: True
+                shorten_from: 'right'
+                text: app.present_description
+                font_size: self.height / 6
+
+        ProgressBar:
+            size_hint: 1, .02
+            max: app.epg_progress_max
+            value: app.epg_progress_value
+
+        BoxLayout:
+            size_hint: 1, .40
+            orientation: 'vertical'
+            BlockLabel:
+                size_hint: 1, .25
+                valign: 'top'
+                shorten: True
+                shorten_from: 'right'
+                text_size: self.size
+                font_size: self.height - 1
+                font_name: 'RobotoCondensed-Regular'
+                text:
+                    time.strftime("%H:%M ", time.localtime(app.following_starttime)\
+                    ) + app.following_title
+
+            BlockLabel:
+                canvas.before:
+                    Color:
+                        rgba: .1, .1, .1, 0.5
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size                         
+                size_hint: 1, .15
+                height: root.height
+                shorten: True
+                shorten_from: 'right'
+                valign: 'top'
+                halign: 'left'
+                text_size: self.size
+                font_size: self.height - 1
+                font_name: 'RobotoCondensed-Regular'
+                text: app.following_shorttext
+                color: [.9, .9, 1, 1]
+            ScrollableLabel:
+                size_hint: 1, .6
+                halign: 'left'
+                valign: 'top'
+                text: app.following_description
+                font_size: self.height / 6
+
+<RemoteButton@Button>:
+    size_hint: 1, .25
+    valign: 'middle'
+    halign: 'center'
+    shorten: True
+    shorten_from: 'right'
+    
+<ReplayScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        spacing: 5
+
+        StatusBar:
+            size_hint: 1, .18
+
+        CenteredBlockLabel:
+            valign: 'top'
+            shorten: True
+            shorten_from: 'right'
+            text_size: self.size
+            font_size: self.height * 0.8
+            size_hint: 1, .1
+            text: app.replay_event_title
+            font_name: 'RobotoCondensed-Regular'
+
+        CenteredBlockLabel:
+            size_hint: 1, .07
+            text: app.replay_event_shorttext
+
+        ProgressBar:
+            size_hint: 1, .01
+            max: app.replaycontrol_total
+            value: app.replaycontrol_current
+
+        ScrollableLabel:
+            text: app.replay_event_description
+            size_hint: 1, .5
+            halign: 'left'
+            valign: 'top'
+            font_size: self.parent.height / 5
+
+
+
+<TimerScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        spacing: 5
+
+        StatusBar:
+            size_hint: 1, .18
+
+        TimerRV:
+            size_hint: 1, .8
+
+<RecordingsScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        spacing: 5
+
+        StatusBar:
+            size_hint: 1, .18
+
+        RecordingRV:
+            size_hint: 1, .8
+            size: root.size
+
+<ClockScreen>:
+    BoxLayout:
+        orientation: 'vertical'
+        spacing: 5
+
+        StatusBar:
+            size_hint: 1, .18
+
+        CenteredBlockLabel:
+            id: time
+            font_size: self.height -5 
+            font_name: 'DejaVuSans'
+            size_hint: 1, .6
+            text: app.now
+
+        CenteredBlockLabel:
+            text: app.channel_channelname
+            shorten: True
+            shorten_from: 'right'
+            text_size: self.width -10, None
+            size_hint: 1, .1
+
+        CenteredBlockLabel:
+            size_hint: 1, .1
+            text_size: self.width -10, None
+            shorten: True
+            shorten_from: 'right'
+            text: app.present_title
+            font_name: 'RobotoCondensed-Regular'
+
+        ProgressBar:
+            max:
+                app.epg_progress_max\
+                if not app.replaycontrol_active else app.replaycontrol_total
+            value:
+                app.epg_progress_value if not app.replaycontrol_active\
+                else app.replaycontrol_current
+            size_hint: 1, .01
+
+        BoxLayout:
+            orientation: 'horizontal'
+            spacing: 5
+            size_hint: 1, .1
+
+            CenteredBlockLabel:
+                text: datetime.fromtimestamp(app.present_starttime).strftime("%H:%M")
+                size_hint: .2, 1
+
+            CenteredBlockLabel:
+                id: playstatus
+                text: "" # Pause" if (app.replaycontrol_active and not app.replaycontrol_play) else "Playing"
+                shorten: True
+                shorten_from: 'right'
+                text_size: self.width -10, None
+                size_hint: .6, 1
+
+            CenteredBlockLabel:
+                text: datetime.fromtimestamp(app.present_endtime).strftime("%H:%M")
+                size_hint: .2, 1
