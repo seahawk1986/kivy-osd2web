@@ -21,6 +21,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.recycleview import RecycleView
+from kivy.uix.recycleboxlayout import RecycleBoxLayout
 from kivy.uix.spinner import Spinner
 from twisted.python import log
 from twisted.internet import reactor
@@ -68,41 +69,17 @@ class BlockLabel(BlockWidget, Label):
         self.on_texture_size()
 
 
-class ScreenChooserSpinner(Spinner):
-    def change_screen(self, *args):
-        if self.text in self.values and app.sm.current != "Change Screen":
-            app.sm.current = self.text
-        self.text = 'Change Screen'
-
-class TimerLabel(Label):
-    pass
-
-
-class RecordingLabel(Label):
-    pass
-
-
-class TimerRV(RecycleView):
-
-    def __init__(self, **kwargs):
-        super(TimerRV, self).__init__(**kwargs)
-        self.data = app.timers
-
-class RecordingRV(RecycleView):
-    pass
- 
-
 class VDRStatusAPP(App, osd2webData):
     pp = pprint.PrettyPrinter(indent=4)
-
+    url = StringProperty('localhost:4444')
     screens = OrderedDict([
-            (ClockScreen, 'clock'),
-            (LiveTVScreen, 'livetv'),
-            (ReplayScreen, 'replay'),
-            (TimerScreen, 'timers'),
-            (RecordingsScreen, 'recordings'),
-            (MenuScreen, 'menu'),
-            ])
+        (LiveTVScreen, 'livetv'),
+        (ReplayScreen, 'replay'),
+        (TimerScreen, 'timers'),
+        (RecordingsScreen, 'recordings'),
+        (MenuScreen, 'menu'),
+        (ClockScreen, 'clock'),
+    ])
 
     channelname = StringProperty("Welcome to yaVDR")
     localtime = ObjectProperty(time.localtime())
@@ -111,22 +88,47 @@ class VDRStatusAPP(App, osd2webData):
     datetime = StringProperty("day, dd:mm:YY 00:00")
     rec_color_active = ListProperty([1, .1, .1, 1])
     rec_color_inactive = ListProperty([.3, .3, .3, .7])
+    last_screen = 'livetv'
+    connection = None
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, **kwargs):
         self.update_register = {
-                'actual': self.update_actual,
-                'customdata': self.update_customdata,
-                'recordings': self.update_recordings,
-                'replay': self.update_replay,
-                'replaycontrol': self.update_replaycontrol,
-                'rolechange': self.update_rolechange,
-                'skinstate': self.update_skinstate,
-                'timers': self.update_timers,
-                'buttons': self.update_buttons,
-                }
+            'actual': self.update_actual,
+            'customdata': self.update_customdata,
+            'recordings': self.update_recordings,
+            'replay': self.update_replay,
+            'replaycontrol': self.update_replaycontrol,
+            'rolechange': self.update_rolechange,
+            'skinstate': self.update_skinstate,
+            'timers': self.update_timers,
+            'buttons': self.update_buttons,
+            'menu': self.update_menu,
+            'menuitem': self.update_menuitem,
+            'clearmenu': self.clearmenu,
+            'message': self.update_message,
+        }
 
-        super(VDRStatusAPP, self).__init__()
+        super(VDRStatusAPP, self).__init__(**kwargs)
         Clock.schedule_interval(self.update_clock, 1)
+
+    def change_screen(self, screen, popup=None):
+        """change the screen, optinally destroy popup if given"""
+        if self.sm.current != screen:
+            self.sm.current = screen
+        if popup is not None:
+            popup.dismiss()
+
+    def send_key(self, key, repeat=1):
+        """send a keypress with a given number of repeats"""
+        if self.connection is not None:
+            self.connection.factory.protocol.broadcast_message(
+                {
+                    'event': 'keypress',
+                    'object': {
+                        'key': key,
+                        'repeat': repeat,
+                    }
+                })
 
     def update_data(self, name, data):
         # TODO: move to update_* functions if really needed
@@ -139,7 +141,7 @@ class VDRStatusAPP(App, osd2webData):
                     item = flatten_json(item)
                 flattened_items.append(item)
             data = flattened_items
-
+        #self.pp.pprint(data)
         update_function = self.update_register.get(name, None)
         if update_function is None:
             print("unhandled event:", name)
@@ -147,12 +149,6 @@ class VDRStatusAPP(App, osd2webData):
             self.pp.pprint(data)
         else:
             update_function(data)
-
-        if self.skin_attached is True and self.sm.current != 'menu':
-            self.last_screen = self.sm.current
-            self.sm.current = 'menu'
-        elif self.skin_attached is False:
-            self.sm.current = self.last_screen
 
     def update_clock(self, *args):
         self.localtime = time.localtime()
@@ -162,7 +158,6 @@ class VDRStatusAPP(App, osd2webData):
         self.datetime = now.strftime("%a, %d.%m.%y %H:%M")
         if self.replaycontrol_active and self.replaycontrol_play:
             self.replaycontrol_current += 1
-            print(self.replaycontrol_current)
         self.epg_progress_value = int(time.time()) - self.present_starttime
 
     def build_config(self, config):
@@ -183,16 +178,15 @@ class VDRStatusAPP(App, osd2webData):
     def build(self):
         self.sm = MyScreenManager()
         for screen_class, screen_name in self.screens.iteritems():
-            self.sm.add_widget(screen_class(name=screen_name))
-        url = "ws://{}:{}".format(self.config.get('connection', 'host'),
-                                  self.config.getint('connection', 'port'))
-        factory = WSClientFactory(self, url=url, protocols=['osd2vdr'])
-        connectWS(factory)
+            self.sm.add_widget(screen_class(name=screen_name, id=screen_name))
+        self.url = "ws://{}:{}".format(self.config.get('connection', 'host'),
+                                       self.config.getint('connection', 'port'))
+        self.wsfactory = WSClientFactory(self, url=self.url, protocols=['osd2vdr'])
+        self.connection = connectWS(self.wsfactory)
         self.rec_color_active = ast.literal_eval(
             self.config.get('skin', 'rec_color_active'))
         self.rec_color_inactive = ast.literal_eval(
             self.config.get('skin', 'rec_color_inactive'))
-        self.last_screen = self.config.get('skin', 'default_screen')
         return self.sm
 
 if __name__ == '__main__':
