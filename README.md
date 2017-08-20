@@ -7,7 +7,7 @@ This app has the following dependencies (the debian/ubuntu Package name is in br
  - kivy >= 1.9.0 (python-kivy)
  - twisted (python-twisted)
  - autobahn (python-autobahn)
- - RobotoCondensed-Regular.ttf
+ - RobotoCondensed-Regular.ttf (fonts-roboto)
 
 # Configuration
 By default the app tries to connect to `localhost` on port `4444`.
