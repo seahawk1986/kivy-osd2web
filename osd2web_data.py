@@ -245,7 +245,23 @@ class MenuData(object):
     def update_menuitem(self, data):
         #TODO Menu categories (like recordings need additional layout options
         #print(data)
+        update_menu = False
+        if data['index'] in self.menu_data.keys():
+            # we got an update for an existing menu line
+            update_menu = True
         self.menu_data[data['index']] = data
+        if update_menu is True:
+            self.update_menu_view()
+
+    def update_message(self, data):
+        """set the osd_message variable"""
+        self.osd_message = data['message']
+
+    def update_scrollbar(self, data):
+        """the scrollbar event indicates that menu_data is complete"""
+        self.update_menu_view()
+
+    def update_menu_view(self):
         self.menu_list = sorted([
             {'text': item['text'].replace('\t', '  '),
              'id': 'menu_item_' + str(item['index']),
@@ -254,12 +270,6 @@ class MenuData(object):
              'index': item['index'],
              } for item in self.menu_data.values()], key=lambda k: k['index'])
         #print(self.menu_list)
-
-    def update_message(self, data):
-        self.osd_message = data['message']
-
-    def update_scrollbar(self, data):
-        pass
         #print("Menu scolling:", data)
 
     def clearmenu(self, data):
