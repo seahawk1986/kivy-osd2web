@@ -259,7 +259,8 @@ class MenuData(object):
         self.osd_message = data['message']
 
     def update_scrollbar(self, data):
-        print("Menu scolling:", data)
+        pass
+        #print("Menu scolling:", data)
 
     def clearmenu(self, data):
         self.menu_list = []
