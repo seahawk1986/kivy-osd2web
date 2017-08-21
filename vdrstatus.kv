@@ -101,7 +101,6 @@
 
     Button:
         size_hint: .2, 1
-        #text: channellogo.source
         halign: 'center'
         valign: 'middle'
         text_size: self.size
@@ -111,7 +110,7 @@
             id: channellogo
         
 
-    Label:
+    CenterLabel:
         canvas.before:
             Color:
                 rgba: .1, .1, .1, 0.5
@@ -120,10 +119,7 @@
                 size: self.size
         id: date_label
         size_hint: .6, 1
-        text_size: self.size
         font_size: self.height * 0.4
-        halign: 'center'
-        valign: 'center'
         font_name: 'DejaVuSans' # 'RobotoMono-Regular.ttf'
         text: app.datetime
 
@@ -566,7 +562,7 @@
             size_hint: 1, .18
 
         TimerRV:
-            size_hint: 1, .8
+            size_hint: 1, .82
 
 <RecordingsScreen>:
     BoxLayout:
@@ -577,7 +573,7 @@
             size_hint: 1, .18
 
         RecordingRV:
-            size_hint: 1, .8
+            size_hint: 1, .82
             size: root.size
 
 <ClockScreen>:
