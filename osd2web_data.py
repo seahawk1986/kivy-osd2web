@@ -130,7 +130,7 @@ class ReplayControlData(object):
     # replaycontrol_speed values:
     # -1: playing, 1-3 fast forward/backward (use replaycontrol_forward)
     replaycontrol_speed = NumericProperty(-1)
-    
+
     def update_replaycontrol(self, data):
         for key, value in data.items():
             k = 'replaycontrol_' + key
@@ -156,7 +156,7 @@ class TimerData(object):
              'channel_text': timer.get('channel_channelname'),
              'is_recording': timer.get('recording'),
              'starttime': timer.get('starttime'),
-        } for timer in data], key=lambda k: k['starttime']) 
+        } for timer in data], key=lambda k: k['starttime'])
         self.is_recording = any(bool(timer.get('recording', False))
                                 for timer in data)
 
@@ -245,7 +245,6 @@ class MenuData(object):
         #TODO Menu categories (like recordings need additional layout options
         #print(data)
         self.menu_data[data['index']] = data
-        #self.menu[data['index']] = data
         self.menu_list = sorted([
             {'text': item['text'].replace('\t', '  '),
              'id': 'menu_item_' + str(item['index']),
@@ -278,6 +277,7 @@ class MenuData(object):
                 self.send_key('Down', delta)
         else:
             self.send_key('Ok')
+
 
 # data for scrollbar
 
