@@ -16,6 +16,7 @@
         height: self.texture_size[1]
         text_size: self.width, None
         text: root.text
+        markup: True
         font_size: root.font_size
         font_name: root.font_name
 
@@ -303,7 +304,6 @@
     index: 0
     selectable: self.selectable
     background_color: [1, .1, .1, .1, 1] if (self.selected == 1) else [.2, .2, .2, 1]
-    #on_selected: print(self.parent.ids)  # menu_view.scroll_to(self)
     halign: 'left'
     valign: 'center'
     text_size: self.size
@@ -353,7 +353,7 @@
                 size_hint: 1, .1
             Label:
                 size_hint: 1, .07
-                text: app.osd_message if app.osd_message else app.menu_title # '%s (cat: %d)' % (app.menu_title, app.menu_category) 
+                text: app.osd_message if app.osd_message else app.menu_title
                 font_size: self.height * .9
                 text_size: self.size
                 shorten: True
@@ -466,7 +466,6 @@
         BoxLayout:
             size_hint: 1, .40
             orientation: 'vertical'
-            #pacing: 10
             BlockLabel:
                 name: 'title1'
                 shorten: True
@@ -478,31 +477,14 @@
                 text:
                     time.strftime('%H:%M ', time.localtime(app.present_starttime))\
                     + app.present_title
-            BlockLabel:
-                canvas.before:
-                    Color:
-                        rgba: .1, .1, .1, 0.5
-                    Rectangle:
-                        pos: self.pos
-                        size: self.size        
-                size_hint: 1, .15
-                height: root.height
-                shorten: True
-                shorten_from: 'right'
-                valign: 'top'
-                halign: 'left'
-                text_size: self.size
-                font_size: self.height - 1
-                font_name: 'RobotoCondensed-Regular'
-                text: app.present_shorttext
-                color: [.9, .9, 1, 1]
             ScrollableLabel:
-                size_hint: 1, .6
+                size_hint: 1, .75
                 halign: 'left'
                 valign: 'top'
-                #shorten: True
-                shorten_from: 'right'
-                text: app.present_description
+                markup: True
+                text:
+                    "[size=%s][color=%s]%s[/color][/size]\n%s" %\
+                    (int(self.font_size * 1.2), '#ddddff', app.present_shorttext, app.present_description)
                 font_size: self.height / 6
 
         ProgressBar:
@@ -525,29 +507,14 @@
                     time.strftime("%H:%M ", time.localtime(app.following_starttime)\
                     ) + app.following_title
 
-            BlockLabel:
-                canvas.before:
-                    Color:
-                        rgba: .1, .1, .1, 0.5
-                    Rectangle:
-                        pos: self.pos
-                        size: self.size                         
-                size_hint: 1, .15
-                height: root.height
-                shorten: True
-                shorten_from: 'right'
-                valign: 'top'
-                halign: 'left'
-                text_size: self.size
-                font_size: self.height - 1
-                font_name: 'RobotoCondensed-Regular'
-                text: app.following_shorttext
-                color: [.9, .9, 1, 1]
             ScrollableLabel:
-                size_hint: 1, .6
+                size_hint: 1, .75
                 halign: 'left'
                 valign: 'top'
-                text: app.following_description
+                text:
+                    "[size=%s][color=%s]%s[/color][/size]\n%s" %\
+                    (int(self.height / 5), '#ddddff', app.following_shorttext, app.following_description)
+                #text: app.following_description
                 font_size: self.height / 6
 
 <RemoteButton@Button>:
@@ -570,14 +537,10 @@
             shorten: True
             shorten_from: 'right'
             text_size: self.size
-            font_size: self.height * 0.8
+            font_size: self.height * 0.7
             size_hint: 1, .1
             text: app.replay_event_title
             font_name: 'RobotoCondensed-Regular'
-
-        CenteredBlockLabel:
-            size_hint: 1, .07
-            text: app.replay_event_shorttext
 
         ProgressBar:
             size_hint: 1, .01
@@ -585,13 +548,14 @@
             value: app.replaycontrol_current
 
         ScrollableLabel:
-            text: app.replay_event_description
-            size_hint: 1, .5
+            text:
+                "[size=%d][color=%s]%s[/color][/size]\n%s" %\
+                (int(self.font_size * 1.2), '#eeeeff',\
+                app.replay_event_shorttext, app.replay_event_description)
+            size_hint: 1, .71
             halign: 'left'
             valign: 'top'
-            font_size: self.parent.height / 5
-
-
+            font_size: self.parent.height / 6
 
 <TimerScreen>:
     BoxLayout:

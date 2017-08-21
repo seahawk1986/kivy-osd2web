@@ -168,7 +168,6 @@ class VDRStatusAPP(App, osd2webData):
         update_function = self.update_register.get(name, None)
         if update_function is None:
             print("unhandled event:", name)
-            #self.update_vars(data)
             self.pp.pprint(data)
         else:
             update_function(data)
@@ -184,21 +183,19 @@ class VDRStatusAPP(App, osd2webData):
         self.epg_progress_value = int(time.time()) - self.present_starttime
 
     def build_config(self, config):
-        config.setdefaults(
-            'connection',
+        config.setdefaults('connection',
             {
                 'host': 'localhost',
                 'port': 4444,
             })
-        config.setdefaults(
-            'skin',
+        config.setdefaults('skin',
             {
                 'default_screen': 'livetv',
                 'rec_color_active': [1, 0.1, 0.1, 0.1],
                 'rec_color_inactive': [0.3, 0.3, 0.3, 0.7],
                 'menu_lines': 15
-            }
-        )
+            })
+
     def build(self):
         self.sm = MyScreenManager()
         for screen_class, screen_name in self.screens.iteritems():
