@@ -23,6 +23,10 @@ from kivy.uix.label import Label
 from kivy.uix.recycleview import RecycleView
 from kivy.uix.recycleboxlayout import RecycleBoxLayout
 from kivy.uix.spinner import Spinner
+from kivy.uix.behaviors.focus import FocusBehavior
+from kivy.uix.recycleview.layout import LayoutSelectionBehavior
+#from kivy.uix.recycleboxlayout import RecycleBoxLayout
+from kivy.uix.recyclegridlayout import RecycleGridLayout
 from twisted.python import log
 from twisted.internet import reactor
 from autobahn.twisted.websocket import connectWS
@@ -54,6 +58,10 @@ class BlockWidget(object):
                 self.font_size = self.font_size1
         except ZeroDivisionError:
             pass
+
+class SelectableRecycleBoxLayout(FocusBehavior, LayoutSelectionBehavior,
+                                  RecycleBoxLayout):
+    pass
 
 
 class BlockButton(BlockWidget, Button):
@@ -106,6 +114,7 @@ class VDRStatusAPP(App, osd2webData):
             'menuitem': self.update_menuitem,
             'clearmenu': self.clearmenu,
             'message': self.update_message,
+            'scrollbar': self.update_scrollbar,
         }
 
         super(VDRStatusAPP, self).__init__(**kwargs)
@@ -118,9 +127,23 @@ class VDRStatusAPP(App, osd2webData):
         if popup is not None:
             popup.dismiss()
 
+    def send_menu_lenght(self, lines=None):
+        if lines is None:
+            lines = self.menu_lines
+        if self.connection is not None:
+            category_list = []
+            for i in range(29):
+                category_list.append({"category": i,"maxlines": lines,"shape": 1})
+            self.connection.factory.protocol.broadcast_message(
+                    {"event":"maxlines",
+                     "object": {"categories": category_list}
+                     })
+
     def send_key(self, key, repeat=1):
         """send a keypress with a given number of repeats"""
         if self.connection is not None:
+            if key == 'Menu':
+                self.send_menu_lenght()
             self.connection.factory.protocol.broadcast_message(
                 {
                     'event': 'keypress',
@@ -173,6 +196,7 @@ class VDRStatusAPP(App, osd2webData):
                 'default_screen': 'livetv',
                 'rec_color_active': [1, 0.1, 0.1, 0.1],
                 'rec_color_inactive': [0.3, 0.3, 0.3, 0.7],
+                'menu_lines': 15
             }
         )
     def build(self):
@@ -187,6 +211,7 @@ class VDRStatusAPP(App, osd2webData):
             self.config.get('skin', 'rec_color_active'))
         self.rec_color_inactive = ast.literal_eval(
             self.config.get('skin', 'rec_color_inactive'))
+        self.menu_lines = self.config.getint('skin', 'menu_lines')
         return self.sm
 
 if __name__ == '__main__':

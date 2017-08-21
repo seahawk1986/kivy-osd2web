@@ -307,7 +307,7 @@
     halign: 'left'
     valign: 'center'
     text_size: self.size
-    font_size: self.height * .9
+    font_size: self.height * .8
     shorten: True
     shorten_from: 'right'
     on_release: app.activate_menu_entry(self.index, self.selected)
@@ -317,17 +317,15 @@
     viewclass: 'MenuButton'
     data: app.menu_list
     halign: 'left'
-    #on_data: self.scroll_to_selected()
-    RecycleBoxLayout:
-        id: menu_view
-        default_size: None, root.height / 15
+    SelectableRecycleBoxLayout:
+        id: controller
+        key_selection: 'selectable'
+        default_size: None, (root.height / app.menu_lines)
         height: root.height
         default_size_hint: 1, None
-        size_hint_y: None
+        size_hint: 1, None
         height: self.minimum_height
         orientation: 'vertical'
-        spacing: 5
-        padding: 5
         halign: 'left'
     
 <KeypadButton@Button>:
@@ -354,8 +352,8 @@
             StatusBar:
                 size_hint: 1, .1
             Label:
-                text: app.osd_message if app.osd_message else app.menu_title
-                size_hint: 1, .05
+                size_hint: 1, .07
+                text: app.osd_message if app.osd_message else app.menu_title # '%s (cat: %d)' % (app.menu_title, app.menu_category) 
                 font_size: self.height * .9
                 text_size: self.size
                 shorten: True
@@ -368,7 +366,7 @@
                 size_hint: 1, .75
                         
             ColorButtonBox:
-                size_hint: 1, .1  
+                size_hint: 1, .08
                     
         GridLayout:
             size_hint: .3, 1

@@ -233,6 +233,7 @@ class MenuData(object):
     menu_category = NumericProperty(0)
     menu_editable = BooleanProperty(False)
     osd_message = StringProperty('')
+    menu_lines = NumericProperty(15)
 
     def update_menu(self, data):
         for key, value in data.items():
@@ -256,6 +257,9 @@ class MenuData(object):
 
     def update_message(self, data):
         self.osd_message = data['message']
+
+    def update_scrollbar(self, data):
+        print("Menu scolling:", data)
 
     def clearmenu(self, data):
         self.menu_list = []
