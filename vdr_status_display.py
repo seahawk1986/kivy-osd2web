@@ -98,6 +98,7 @@ class VDRStatusAPP(App, osd2webData):
     rec_color_inactive = ListProperty([.3, .3, .3, .7])
     last_screen = 'livetv'
     connection = None
+    is_startup = True
 
     def __init__(self, **kwargs):
         self.update_register = {
@@ -209,6 +210,12 @@ class VDRStatusAPP(App, osd2webData):
         self.rec_color_inactive = ast.literal_eval(
             self.config.get('skin', 'rec_color_inactive'))
         self.menu_lines = self.config.getint('skin', 'menu_lines')
+        self.default_screen = self.config.get('skin', 'default_screen')
+        if not self.default_screen in self.screens.values():
+            print("WARNING: invalid name for default screen")
+        elif self.is_startup:
+            self.is_startup = False
+            self.sm.current = self.default_screen
         return self.sm
 
 if __name__ == '__main__':
