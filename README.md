@@ -8,6 +8,19 @@ This app has the following dependencies (the debian/ubuntu Package name is in br
  - twisted (python-twisted)
  - autobahn (python-autobahn)
  - RobotoCondensed-Regular.ttf (fonts-roboto)
+ 
+ If your distributions's packages are to old (e.g. on Ubuntu 14.04) you can install the python packages with pip in a virtualenv:
+ 
+ ```
+sudo apt-get install python-virtualenv python-pip build-essential fakeroot fonts-roboto
+sudo apt-get build-dep cython
+sudo apt-get build-dep kivy
+virtualenv ~/kivy # choose the directory wisely, you cannot move it without breaking the virtualenv
+source ~/kivy/bin/activate  # this is needed in every new shell session to use the python from the virtualenv
+pip install --upgrade pip
+pip install --upgrade cython
+pip install --upgrade kivy autobahn twisted pillow pygame # das dürfte eine Weile dauern
+ ```
 
 # Configuration
 By default the app tries to connect to `localhost` on port `4444`.
