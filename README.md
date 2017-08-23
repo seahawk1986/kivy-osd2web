@@ -16,7 +16,7 @@ sudo apt-get install python-virtualenv python-pip build-essential fakeroot fonts
 sudo apt-get build-dep cython
 sudo apt-get build-dep kivy
 virtualenv ~/kivy # choose the directory wisely, you cannot move it without breaking the virtualenv
-source ~/kivy/bin/activate  # this is needed in every new shell session to use the python from the virtualenv
+source ~/kivy/bin/activate  # this is needed in every new shell session to use the python libraries from the virtualenv
 pip install --upgrade pip
 pip install --upgrade cython
 pip install --upgrade kivy autobahn twisted pillow pygame # this may take a while to complete
