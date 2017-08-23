@@ -19,7 +19,7 @@ virtualenv ~/kivy # choose the directory wisely, you cannot move it without brea
 source ~/kivy/bin/activate  # this is needed in every new shell session to use the python from the virtualenv
 pip install --upgrade pip
 pip install --upgrade cython
-pip install --upgrade kivy autobahn twisted pillow pygame # das dürfte eine Weile dauern
+pip install --upgrade kivy autobahn twisted pillow pygame # this may take a while to complete
  ```
 
 # Configuration
