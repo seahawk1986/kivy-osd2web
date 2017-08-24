@@ -196,7 +196,7 @@ class VDRStatusAPP(App, osd2webData):
             else:
                 screens = " ".join(self.screens.values())
                 response = (
-                        "\r\n501-no screen name given.\r\n"
+                        "501-no screen name given.\r\n"
                         "501 possible screen names are: {}\r\n".format(screens)
                         )
                 return response
