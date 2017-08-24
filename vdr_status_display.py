@@ -223,7 +223,7 @@ class VDRStatusAPP(App, osd2webData):
         config.setdefaults('skin',
             {
                 'default_screen': 'livetv',
-                'rec_color_active': [1, 0.1, 0.1, 0.1],
+                'rec_color_active': [1, 0.1, 0.1, 1],
                 'rec_color_inactive': [0.3, 0.3, 0.3, 0.7],
                 'menu_lines': 15
             })
