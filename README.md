@@ -46,7 +46,11 @@ enabled = True
 ```
 
 # Changing the screen
-If the TCPControl is enabled, you can list and switch screens using netcat (the example uses the BSD nc variant) or vdr's svdrpsend:
+kivy-osd2web provides several screens displaying different information sent by osd2web. When replaying a recording it switches to the replay screen (except if you are on the menu screen which also provides remote control buttons). If the replay is stopped, it switches bach to the previous screen.
+
+Clicking on the channel logo (or hamburger menu if osd2web is not configured to display channel logos) opens a popup window for screen selection.
+
+If the TCPControl option is enabled, you can list and switch screens by sending a command over a TCP connection, e.g. using netcat (the example uses the BSD nc variant) or vdr's svdrpsend script:
 ```
 $ nc -q1 192.168.1.140 8877 <<< "screen"
 SVDRP kivy-osd2web client; UTF-8
