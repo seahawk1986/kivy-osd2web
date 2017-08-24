@@ -25,16 +25,16 @@ from kivy.uix.recycleboxlayout import RecycleBoxLayout
 from kivy.uix.spinner import Spinner
 from kivy.uix.behaviors.focus import FocusBehavior
 from kivy.uix.recycleview.layout import LayoutSelectionBehavior
-#from kivy.uix.recycleboxlayout import RecycleBoxLayout
-from kivy.uix.recyclegridlayout import RecycleGridLayout
-from twisted.python import log
+
 from twisted.internet import reactor
+from twisted.python import log
 from autobahn.twisted.websocket import connectWS
 
 from osd2web_data import osd2webData, flatten_json
 from screens import MyScreenManager, MenuScreen, LiveTVScreen, ReplayScreen, \
                     TimerScreen, RecordingsScreen, ClockScreen
 from websocket import WSClientFactory
+from webcontrol import WebControllerFactory
 
 
 class BlockWidget(object):
@@ -183,11 +183,36 @@ class VDRStatusAPP(App, osd2webData):
             self.replaycontrol_current += 1
         self.epg_progress_value = int(time.time()) - self.present_starttime
 
+    def handle_webctrl_message(self, msg):
+        data = msg.split()
+        command, args = data[0], data[1:]
+
+        if command == 'screen':
+            if args:
+                screen = args[0]
+                if screen in self.screens.values():
+                    self.sm.current = screen
+                    return "250 Ok\r\n"
+            else:
+                screens = " ".join(self.screens.values())
+                response = (
+                        "\r\n501 no screen name given.\r\n"
+                        "501 possible screen names are: {}\r\n".format(screens)
+                        )
+                return response
+
+
+
     def build_config(self, config):
         config.setdefaults('connection',
             {
                 'host': 'localhost',
                 'port': 4444,
+            })
+        config.setdefaults('TCPControl',
+            {
+                'port': 8877,
+                'enabled': True,
             })
         config.setdefaults('skin',
             {
@@ -203,8 +228,15 @@ class VDRStatusAPP(App, osd2webData):
             self.sm.add_widget(screen_class(name=screen_name, id=screen_name))
         self.url = "ws://{}:{}".format(self.config.get('connection', 'host'),
                                        self.config.getint('connection', 'port'))
+
         self.wsfactory = WSClientFactory(self, url=self.url, protocols=['osd2vdr'])
         self.connection = connectWS(self.wsfactory)
+
+        if ast.literal_eval(self.config.get('TCPControl', 'enabled')):
+            webctrl_port = self.config.getint('TCPControl', 'port')
+            self.webctrlfactory = WebControllerFactory(self)
+            reactor.listenTCP(webctrl_port, WebControllerFactory(self))
+
         self.rec_color_active = ast.literal_eval(
             self.config.get('skin', 'rec_color_active'))
         self.rec_color_inactive = ast.literal_eval(
