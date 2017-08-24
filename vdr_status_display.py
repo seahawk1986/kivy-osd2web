@@ -199,7 +199,9 @@ class VDRStatusAPP(App, osd2webData):
                         "501-no screen name given.\r\n"
                         "501 possible screen names are: {}\r\n".format(screens)
                         )
-                return response
+        else:
+            response = "500 unknown command\r\n"
+        return response
 
 
 
