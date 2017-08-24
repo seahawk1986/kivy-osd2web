@@ -188,22 +188,26 @@ class VDRStatusAPP(App, osd2webData):
         command, args = data[0], data[1:]
 
         if command == 'screen':
-            if args:
-                screen = args[0]
-                if screen in self.screens.values():
-                    self.sm.current = screen
-                    return "250 Ok\r\n"
-            else:
+
+            try:
+                if args:
+                    screen = args[0]
+                    if screen in self.screens.values():
+                        self.sm.current = screen
+                        response = 250, ["Ok"]
+                    else:
+                        raise ValueError('invalid screen name')
+                else:
+                    raise ValueError('no screen name given')
+            except ValueError as e:
                 screens = " ".join(self.screens.values())
-                response = (
-                        "501-no screen name given.\r\n"
-                        "501 possible screen names are: {}\r\n".format(screens)
-                        )
+                response = 501, [
+                        str(e),
+                        "possible screen names are: {}".format(screens),
+                        ]
         else:
-            response = "500 unknown command\r\n"
+            response = 500, ["unknown command"]
         return response
-
-
 
     def build_config(self, config):
         config.setdefaults('connection',

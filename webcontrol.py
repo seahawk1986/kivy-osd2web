@@ -8,9 +8,12 @@ class WebController(protocol.Protocol):
     def dataReceived(self, data):
         data = data.decode('utf-8').strip()
         if data.lower() not in ('quit', 'exit'):
-            response = self.factory.app.handle_webctrl_message(data)
+            response = []
+            returncode, response = self.factory.app.handle_webctrl_message(data)
             if response:
-                self.transport.write(response)
+                for line in response[:-1]:
+                    self.transport.write("{}-{}\r\n".format(returncode, line))
+                self.transport.write("{} {}\r\n".format(returncode, response[-1]))
         self.transport.write("221 kivy-osd2web closing connection\r\n")
         self.transport.loseConnection()
 
