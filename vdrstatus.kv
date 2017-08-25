@@ -1,4 +1,5 @@
 #:kivy 1.9.0
+# -*- coding: utf-8 -*-
 #:import datetime datetime.datetime
 #:import time time
 #:import SimpleListAdapter kivy.adapters.simplelistadapter.SimpleListAdapter
@@ -33,9 +34,9 @@
 
 <ChannelLogo@AsyncImage>:
     source:
-        "http://%s:%s/data/channellogo?name=%s&id=%s" % (\
+        u"http://%s:%s/data/channellogo?name=%s&id=%s" % (\
         app.config.get('connection', 'host'), app.config.get('connection', 'port'),\
-        quote(app.channel_channelname), app.channel_channelid)\
+        quote(app.channel_channelname.encode('utf-8')), app.channel_channelid)\
         if (app.rolechange_havelogos and app.channel_channelname) else 'icons/menu.png'
     pos: self.parent.pos
     halign: 'center'
