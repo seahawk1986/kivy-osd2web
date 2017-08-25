@@ -121,15 +121,15 @@ class ReplayData(object):
 
 
 class ReplayControlData(object):
-    replaycontrol_active = BooleanProperty(False)
-    replaycontrol_play = BooleanProperty(0)
-    replaycontrol_current = NumericProperty(0)
-    replaycontrol_forward = BooleanProperty(0)
-    replaycontrol_active = BooleanProperty(0)
-    replaycontrol_total = NumericProperty(1606)
-    # replaycontrol_speed values:
-    # -1: playing, 1-3 fast forward/backward (use replaycontrol_forward)
-    replaycontrol_speed = NumericProperty(-1)
+    replaycontrol_active = BooleanProperty(False) # replay mode active
+    replaycontrol_play = BooleanProperty(0)       # is playing
+    replaycontrol_current = NumericProperty(0)    # progress in seconds
+    replaycontrol_total = NumericProperty(1606)   # duration in seconds
+    replaycontrol_forward = BooleanProperty(0)    # fast forward/backward
+    replaycontrol_speed = NumericProperty(-1)     # replaycontrol_speed
+                                                  # -1: playing,
+                                                  # 1-3 fast forward/backward
+                                                  # (use replaycontrol_forward)
 
     def update_replaycontrol(self, data):
         for key, value in data.items():
@@ -147,15 +147,15 @@ class TimerData(object):
     timers = ListProperty([])
 
     def update_timers(self, data):
-        #print([timer for timer in data])
+        print([timer for timer in data])
         self.timers = sorted([
-            {'time_text': time.strftime("%H:%M", time.localtime(timer.get('starttime'))),
-             'date_text': time.strftime("%d.%m.%y", time.localtime(timer.get('starttime'))),
-             'title_text':  timer.get('event_title'),
-             'duration_text': "%d'" % (int(timer.get('event_duration') / 60)),
-             'channel_text': timer.get('channel_channelname'),
-             'is_recording': timer.get('recording'),
-             'starttime': timer.get('starttime'),
+            {'time_text': time.strftime("%H:%M", time.localtime(timer.get('starttime', 0))),
+             'date_text': time.strftime("%d.%m.%y", time.localtime(timer.get('starttime', 0))),
+             'title_text':  timer.get('event_title', ''),
+             'duration_text': "%d'" % (int(timer.get('event_duration', 0) / 60)),
+             'channel_text': timer.get('channel_channelname', ""),
+             'is_recording': timer.get('recording', False),
+             'starttime': timer.get('starttime', 0),
         } for timer in data], key=lambda k: k['starttime'])
         self.is_recording = any(bool(timer.get('recording', False))
                                 for timer in data)
@@ -174,6 +174,7 @@ class RecordingsData(object):
              'duration_text': "%d'" % (int(recording.get('event_duration') / 60)),
              'starttime': recording.get('event_starttime'),
              'is_recording': recording.get('event_hastimer'),
+             'images': recording.get('images', []),
             } for recording in data], key=lambda k: k['starttime'], reverse=True)
 
 
@@ -208,12 +209,6 @@ class SkinstateData(object):
     def update_skinstate(self, data):
         self.skin_attached = bool(data.get('attached', 0))
 
-        #if self.skin_attached is True and self.sm.current != 'menu':
-        #    self.last_screen = self.sm.current
-        #    self.sm.current = 'menu'
-        #elif self.skin_attached is False:
-        #    self.sm.current = self.last_screen
-
 
 class ButtonsData(object):
     btn_red = StringProperty("")
@@ -224,8 +219,7 @@ class ButtonsData(object):
         for btn in ('red', 'green', 'yellow', 'blue'):
             setattr(self, 'btn_' + btn, data.get(btn, ''))
 
-# TODO:
-# data for menu
+
 class MenuData(object):
     menu_list = ListProperty([])
     menu_data = {}
@@ -244,7 +238,6 @@ class MenuData(object):
 
     def update_menuitem(self, data):
         #TODO Menu categories (like recordings need additional layout options
-        #print(data)
         update_menu = False
         if data['index'] in self.menu_data.keys():
             # we got an update for an existing menu line
@@ -269,8 +262,6 @@ class MenuData(object):
              'selectable': item['selectable'],
              'index': item['index'],
              } for item in self.menu_data.values()], key=lambda k: k['index'])
-        #print(self.menu_list)
-        #print("Menu scolling:", data)
 
     def clearmenu(self, data):
         self.menu_list = []
@@ -292,9 +283,6 @@ class MenuData(object):
                 self.send_key('Down', delta)
         else:
             self.send_key('Ok')
-
-
-# data for scrollbar
 
 
 class osd2webData(
