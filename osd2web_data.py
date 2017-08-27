@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import print_function
 import pprint
 import time
@@ -147,7 +148,7 @@ class TimerData(object):
     timers = ListProperty([])
 
     def update_timers(self, data):
-        print([timer for timer in data])
+        #pp([timer for timer in data])
         self.timers = sorted([
             {'time_text': time.strftime("%H:%M", time.localtime(timer.get('starttime', 0))),
              'date_text': time.strftime("%d.%m.%y", time.localtime(timer.get('starttime', 0))),
@@ -159,6 +160,7 @@ class TimerData(object):
         } for timer in data], key=lambda k: k['starttime'])
         self.is_recording = any(bool(timer.get('recording', False))
                                 for timer in data)
+        self.pp(self.timers)
 
 
 class RecordingsData(object):
@@ -168,20 +170,22 @@ class RecordingsData(object):
         #TODO update recordig info
         #print([rec for rec in data])
         self.recordings = sorted([
-            {'time_text': time.strftime("%H:%M", time.localtime(recording.get('event_starttime'))),
-             'date_text': time.strftime("%d.%m.%y", time.localtime(recording.get('event_starttime'))),
-             'title_text': recording.get('event_title'),
-             'duration_text': "%d'" % (int(recording.get('event_duration') / 60)),
-             'starttime': recording.get('event_starttime'),
-             'is_recording': recording.get('event_hastimer'),
+            {'time_text': time.strftime("%H:%M", time.localtime(recording.get('event_starttime', 0))),
+             'date_text': time.strftime("%d.%m.%y", time.localtime(recording.get('event_starttime', 0))),
+             'title_text': recording.get('event_title', ''),
+             'duration_text': "%d'" % (int(recording.get('event_duration', 0) / 60)),
+             'starttime': recording.get('event_starttime', 0),
+             'is_recording': recording.get('event_hastimer', 0),
              'images': recording.get('images', []),
             } for recording in data], key=lambda k: k['starttime'], reverse=True)
+        self.pp(self.recordings)
 
 
 class CustomData(object):
     customdata = DictProperty({})
 
     def update_customdata(self, data):
+        self.pp(data)
         for key, value in data.items():
             k = 'custom_' + key
             if not hasattr(self, k):

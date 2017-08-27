@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
 from collections import OrderedDict
+from functools import partial
 from kivy.support import install_twisted_reactor
 install_twisted_reactor()
 import argparse
@@ -78,7 +79,7 @@ class BlockLabel(BlockWidget, Label):
 
 
 class VDRStatusAPP(App, osd2webData):
-    pp = pprint.PrettyPrinter(indent=4)
+    pretty_printer = pprint.PrettyPrinter(indent=4)
     url = StringProperty('localhost:4444')
     screens = OrderedDict([
         (LiveTVScreen, 'livetv'),
@@ -101,6 +102,7 @@ class VDRStatusAPP(App, osd2webData):
     is_startup = True
 
     def __init__(self, **kwargs):
+        self.pp = self.pretty_printer.pprint
         self.update_register = {
             'actual': self.update_actual,
             'customdata': self.update_customdata,
@@ -169,7 +171,7 @@ class VDRStatusAPP(App, osd2webData):
         update_function = self.update_register.get(name, None)
         if update_function is None:
             print("unhandled event:", name)
-            self.pp.pprint(data)
+            self.pp(data)
         else:
             update_function(data)
 
