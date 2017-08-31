@@ -12,9 +12,10 @@ This app has the following dependencies (the debian/ubuntu Package name is in br
  If your distributions's packages are to old (e.g. on Ubuntu 14.04) or you simply want the newest versions, you can install the python packages with pip in a virtualenv:
  
  ```
-sudo apt-get install git python-virtualenv python-dev build-essential fonts-roboto
+sudo apt-get install git python-virtualenv python-dev build-essential fonts-roboto python-pip
 sudo apt-get install libsdl2-ttf-dev libsdl2-net-dev libsdl2-mixer-dev
 sudo apt-get install libsdl2-gfx-dev libsdl2-dev libsdl2-image-dev
+sudo apt-get install python-pygame python-opengl libgl1-mesa-dev libgles2-mesa-dev
 sudo apt-get build-dep kivy cython
 virtualenv ~/kivy # choose the directory wisely, you cannot move it without breaking the virtualenv
 source ~/kivy/bin/activate # this is needed in every new shell session to use the python libraries from the virtualenv
