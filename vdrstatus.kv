@@ -51,7 +51,7 @@
     font_size: self.height * 0.6
     valign: 'middle'
     halign: 'center'
-    
+
 
 <ScreenChooserPopup@Popup>:
     title: "Screens"
@@ -66,7 +66,7 @@
             columns: 2
             rows: 3
             spacing: 10
-                
+
             ScreenButton:
                 text: 'Timer'
                 on_release: app.change_screen('timers', root)
@@ -89,13 +89,13 @@
             ScreenButton:
                 text: 'Remote'
                 on_release: app.change_screen(screen='menu', popup=root)
-        
+
         ScreenButton:
             size_hint: 1, .2
             text: 'Close'
             on_release: root.dismiss()
-            
-    
+
+
 <StatusBar@BoxLayout>:
     orientation: 'horizontal'
     spacing: 5
@@ -109,7 +109,7 @@
         on_release: Factory.ScreenChooserPopup().open()
         ChannelLogo:
             id: channellogo
-        
+
 
     CenterLabel:
         canvas.before:
@@ -145,7 +145,7 @@
             rgba: .1, .1, .1, 0.5
         Rectangle:
             pos: self.pos
-            size: self.size      
+            size: self.size
     BoxLayout:
         size_hint: .1, 1
         orientation: 'vertical'
@@ -172,14 +172,14 @@
         font_size: self.height * .5
         shorten: True
         shorten_from: 'right'
-        
+
     LeftLabel:
         size_hint: .13, 1
         text: root.channel_text
         font_size: self.height * 0.3
         shorten: True
         shorten_from: 'right'
-        
+
 
 <TimerRV@RecycleView>:
     viewclass: 'TimerEntry'
@@ -226,7 +226,7 @@
             rgba: .1, .1, .1, 0.5
         Rectangle:
             pos: self.pos
-            size: self.size      
+            size: self.size
     BoxLayout:
         size_hint: .1, 1
         orientation: 'vertical'
@@ -253,7 +253,7 @@
         font_size: self.height * .5
         shorten: True
         shorten_from: 'right'
-        
+
 <RecordingRV@RecycleView>:
     viewclass: 'RecordingEntry'
     data: app.recordings
@@ -271,7 +271,7 @@
 
 <ColorButtonBox@BoxLayout>:
     orientation: 'horizontal'
-    
+
     DirectionButton:
         id: red
         text: app.btn_red
@@ -324,7 +324,7 @@
         height: self.minimum_height
         orientation: 'vertical'
         halign: 'left'
-    
+
 <KeypadButton@Button>:
     text_size: self.size
     font_size: self.height * .8
@@ -361,10 +361,10 @@
             MenuRV:
                 id: menu_view
                 size_hint: 1, .75
-                        
+
             ColorButtonBox:
                 size_hint: 1, .08
-                    
+
         GridLayout:
             size_hint: .3, 1
             cols: 3
@@ -474,16 +474,49 @@
                 text:
                     time.strftime('%H:%M ', time.localtime(app.present_starttime))\
                     + app.present_title
-            ScrollableLabel:
+            BoxLayout:
                 size_hint: 1, .75
-                halign: 'left'
-                valign: 'top'
-                markup: True
-                text:
-                    "[size=%s][color=%s]%s[/color][/size]\n%s" %\
-                    (int(self.font_size * 1.2), '#ddddff', app.present_shorttext, app.present_description)
-                font_size: self.height / 6
 
+                ScrollableLabel:
+                    halign: 'left'
+                    valign: 'top'
+                    markup: True
+                    text:
+                        "[size=%s][color=%s]%s[/color][/size]\n%s" %\
+                        (int(self.font_size * 1.2), '#ddddff', app.present_shorttext, app.present_description)
+                    font_size: self.height / 6
+                Carousel:
+                    size_hint: .4, 1
+                    AsyncImage:
+                        anim_delay: 0.05
+                        allow_stretch: True
+                        source:
+                            u"http://%s:%s/data/eventimg?num=%d&id=%s" % (\
+                            0, app.present_eventid) if app.present_epg2vdr.get('count', 0) > 0\
+                            else "icons/black.gif"
+                    AsyncImage:
+                        anim_delay: 0.05
+                        allow_stretch: True
+                        source:
+                            u"http://%s:%s/data/eventimg?num=%d&id=%s" % (\
+                            1 if app.present_epg2vdr.get('count', 0) > 1 else 0,\
+                            app.present_eventid) if app.present_epg2vdr.get('count', 0) > 0\
+                            else "icons/black.gif"
+                    AsyncImage:
+                        anim_delay: 0.05
+                        allow_stretch: True
+                        source:
+                            u"http://%s:%s/data/eventimg?num=%d&id=%s" % (\
+                            2 if app.present_epg2vdr.get('count', 0) > 2 else 0,\
+                            app.present_eventid) if app.present_epg2vdr.get('count', 0) > 0\
+                            else "icons/black.gif"
+                AsyncImage:
+                    anim_delay: 0.05
+                    allow_stretch: True
+                    source:
+                        u"http://%s:%s/data/eventimg?num=%d&id=%s" % (\
+                        0, app.present_eventid) if app.present_epg2vdr.get('count', 0) > 0\
+                        else "https://i.redd.it/qbfoxw3m06ez.gif"
         ProgressBar:
             size_hint: 1, .02
             max: app.epg_progress_max
@@ -504,15 +537,43 @@
                     time.strftime("%H:%M ", time.localtime(app.following_starttime)\
                     ) + app.following_title
 
-            ScrollableLabel:
+            BoxLayout:
                 size_hint: 1, .75
-                halign: 'left'
-                valign: 'top'
-                text:
-                    "[size=%s][color=%s]%s[/color][/size]\n%s" %\
-                    (int(self.height / 5), '#ddddff', app.following_shorttext, app.following_description)
-                #text: app.following_description
-                font_size: self.height / 6
+
+                ScrollableLabel:
+                    size_hint: .6, 1
+                    halign: 'left'
+                    valign: 'top'
+                    text:
+                        "[size=%s][color=%s]%s[/color][/size]\n%s" %\
+                        (int(self.height / 5), '#ddddff', app.following_shorttext, app.following_description)
+                    #text: app.following_description
+                    font_size: self.height / 6
+                Carousel:
+                    size_hint: .4, 1
+                    AsyncImage:
+                        anim_delay: 0.05
+                        allow_stretch: True
+                        source:
+                            u"http://%s:%s/data/eventimg?num=%d&id=%s" % (\
+                            0, app.following_eventid) if app.following_epg2vdr.get('count', 0) > 0\
+                            else "icons/black.gif"
+                    AsyncImage:
+                        anim_delay: 0.05
+                        allow_stretch: True
+                        source:
+                            u"http://%s:%s/data/eventimg?num=%d&id=%s" % (\
+                            1 if app.following_epg2vdr.get('count', 0) > 1 else 0,\
+                            app.following_eventid) if app.following_epg2vdr.get('count', 0) > 0\
+                            else "icons/black.gif"
+                    AsyncImage:
+                        anim_delay: 0.05
+                        allow_stretch: True
+                        source:
+                            u"http://%s:%s/data/eventimg?num=%d&id=%s" % (\
+                            2 if app.following_epg2vdr.get('count', 0) > 2 else 0,\
+                            app.following_eventid) if app.following_epg2vdr.get('count', 0) > 0\
+                            else "icons/black.gif"
 
 <RemoteButton@Button>:
     size_hint: 1, .25
@@ -520,7 +581,7 @@
     halign: 'center'
     shorten: True
     shorten_from: 'right'
-    
+
 <ReplayScreen>:
     BoxLayout:
         orientation: 'vertical'
@@ -587,7 +648,7 @@
 
         CenteredBlockLabel:
             id: time
-            font_size: self.height -5 
+            font_size: self.height -5
             font_name: 'DejaVuSans'
             size_hint: 1, .6
             text: app.now
