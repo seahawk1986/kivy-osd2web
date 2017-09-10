@@ -10,9 +10,11 @@ import ast
 from datetime import datetime, timedelta
 import json
 import locale
+import mimetypes
 import pprint
 import sys
 import time
+from functools import partial
 from kivy.app import App
 from kivy.clock import Clock
 from kivy.config import Config
@@ -20,6 +22,7 @@ from kivy.properties import NumericProperty, ObjectProperty, StringProperty, \
                             BooleanProperty, DictProperty, ListProperty
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
+from kivy.uix.image import AsyncImage
 from kivy.uix.label import Label
 from kivy.uix.recycleview import RecycleView
 from kivy.uix.recycleboxlayout import RecycleBoxLayout
@@ -36,6 +39,11 @@ from screens import MyScreenManager, MenuScreen, LiveTVScreen, ReplayScreen, \
                     TimerScreen, RecordingsScreen, ClockScreen
 from websocket import WSClientFactory
 from webcontrol import WebControllerFactory
+
+mimetypes.guess_extension = partial(mimetypes.guess_extension, strict=False)
+
+class AsyncImage(AsyncImage):
+    pass
 
 
 class BlockWidget(object):
