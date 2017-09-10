@@ -72,12 +72,16 @@ class ActualData(object):
     epg_progress_value = NumericProperty(0)
 
     def update_actual(self, data):
+        #self.pp(data)
         for key, value in data.iteritems():
             setattr(self, key, value)
 
         now = int(time.time()) # seconds since epoch
         self.epg_progress_max = self.present_duration #  self.present_endtime - self.present_starttime
         self.epg_progress_value = now - self.present_starttime
+        print("present_eventid:", self.present_eventid)
+        print("present_epg2vdr:", self.present_epg2vdr)
+        print("present_epg2vdr_imagecount:", self.present_epg2vdr.get('imagecount', 0))
 
 
 class ReplayData(object):
@@ -162,7 +166,7 @@ class TimerData(object):
         } for timer in data], key=lambda k: k['starttime'])
         self.is_recording = any(bool(timer.get('recording', False))
                                 for timer in data)
-        self.pp(self.timers)
+        #self.pp(self.timers)
 
 
 class RecordingsData(object):
@@ -180,14 +184,14 @@ class RecordingsData(object):
              'is_recording': recording.get('event_hastimer', 0),
              'images': recording.get('images', []),
             } for recording in data], key=lambda k: k['starttime'], reverse=True)
-        self.pp(self.recordings)
+        #self.pp(self.recordings)
 
 
 class CustomData(object):
     customdata = DictProperty({})
 
     def update_customdata(self, data):
-        self.pp(data)
+        #self.pp(data)
         for key, value in data.items():
             k = 'custom_' + key
             if not hasattr(self, k):
