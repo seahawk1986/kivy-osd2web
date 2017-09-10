@@ -29,7 +29,15 @@ class ActualData(object):
     present_description = StringProperty('?')
     present_duration = NumericProperty(0)
     present_endtime = NumericProperty(0)
-    present_epg2vdr = DictProperty({})
+    present_epg2vdr_imagecount = StringProperty('0')
+    present_epg2vdr_year = StringProperty('9999')
+    present_epg2vdr_category = StringProperty('?')
+    present_epg2vdr_country = StringProperty('?')
+    present_epg2vdr_audio = StringProperty('?')
+    present_epg2vdr_genre = StringProperty('?')
+    present_epg2vdr_shorttext = StringProperty('?')
+    present_epg2vdr_source = StringProperty('?')
+    present_epg2vdr_longdescription = StringProperty('?')
     present_eventid = NumericProperty(0)
     present_hastimer = BooleanProperty(0)
     present_isrunning = BooleanProperty(0)
@@ -47,7 +55,15 @@ class ActualData(object):
     following_description = StringProperty('?')
     following_duration = NumericProperty(0)
     following_endtime = NumericProperty(0)
-    following_epg2vdr = DictProperty({})
+    following_epg2vdr_imagecount = StringProperty('0')
+    following_epg2vdr_year = StringProperty('9999')
+    following_epg2vdr_category = StringProperty('?')
+    following_epg2vdr_country = StringProperty('?')
+    following_epg2vdr_audio = StringProperty('?')
+    following_epg2vdr_genre = StringProperty('?')
+    following_epg2vdr_shorttext = StringProperty('?')
+    following_epg2vdr_source = StringProperty('?')
+    following_epg2vdr_longdescription = StringProperty('?')
     following_eventid = NumericProperty(0)
     following_hastimer = NumericProperty(0)
     following_isrunning = BooleanProperty(0)
@@ -80,8 +96,7 @@ class ActualData(object):
         self.epg_progress_max = self.present_duration #  self.present_endtime - self.present_starttime
         self.epg_progress_value = now - self.present_starttime
         print("present_eventid:", self.present_eventid)
-        print("present_epg2vdr:", self.present_epg2vdr)
-        print("present_epg2vdr_imagecount:", self.present_epg2vdr.get('imagecount', 0))
+        print("present_epg2vdr_imagecount:", self.present_epg2vdr_imagecount)
 
 
 class ReplayData(object):
