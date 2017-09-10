@@ -491,7 +491,7 @@
                         anim_delay: 0.05
                         allow_stretch: True
                         source:
-                            u"http://%s:%s/data/eventimg?num=%d&id=%s" % (\
+                            u"http://%s:%s/data/eventimg?no=%d&id=%s" % (\
                             app.config.get('connection', 'host'), app.config.get('connection', 'port'),\
                             0, app.present_eventid) if app.present_epg2vdr.get('imagecount', 0) > 0\
                             else "icons/black.gif"
@@ -499,7 +499,7 @@
                         anim_delay: 0.05
                         allow_stretch: True
                         source:
-                            u"http://%s:%s/data/eventimg?num=%d&id=%s" % (\
+                            u"http://%s:%s/data/eventimg?no=%d&id=%s" % (\
                             app.config.get('connection', 'host'), app.config.get('connection', 'port'),\
                             1 if app.present_epg2vdr.get('count', 0) > 1 else 0,\
                             app.present_eventid) if app.present_epg2vdr.get('imagecount', 0) > 0\
@@ -508,18 +508,10 @@
                         anim_delay: 0.05
                         allow_stretch: True
                         source:
-                            u"http://%s:%s/data/eventimg?num=%d&id=%s" % (\
+                            u"http://%s:%s/data/eventimg?no=%d&id=%s" % (\
                             app.config.get('connection', 'host'), app.config.get('connection', 'port'),\
                             2 if app.present_epg2vdr.get('count', 0) > 2 else 0,\
                             app.present_eventid) if app.present_epg2vdr.get('imagecount', 0) > 0\
-                            else "icons/black.gif"
-                    AsyncImage:
-                        anim_delay: 0.05
-                        allow_stretch: True
-                        source:
-                            u"http://%s:%s/data/eventimg?num=%d&id=%s" % (\
-                            app.config.get('connection', 'host'), app.config.get('connection', 'port'),\
-                            0, app.present_eventid) if app.present_epg2vdr.get('imagecount', 0) > 0\
                             else "icons/black.gif"
         ProgressBar:
             size_hint: 1, .02
@@ -559,7 +551,7 @@
                         anim_delay: 0.05
                         allow_stretch: True
                         source:
-                            u"http://%s:%s/data/eventimg?num=%d&id=%s" % (\
+                            u"http://%s:%s/data/eventimg?no=%d&id=%s" % (\
                             app.config.get('connection', 'host'), app.config.get('connection', 'port'),\
                             0, app.following_eventid) if app.following_epg2vdr.get('imagecount', 0) > 0\
                             else "icons/black.gif"
@@ -567,7 +559,7 @@
                         anim_delay: 0.05
                         allow_stretch: True
                         source:
-                            u"http://%s:%s/data/eventimg?num=%d&id=%s" % (\
+                            u"http://%s:%s/data/eventimg?no=%d&id=%s" % (\
                             app.config.get('connection', 'host'), app.config.get('connection', 'port'),\
                             1 if app.following_epg2vdr.get('count', 0) > 1 else 0,\
                             app.following_eventid) if app.following_epg2vdr.get('imagecount', 0) > 0\
@@ -576,7 +568,7 @@
                         anim_delay: 0.05
                         allow_stretch: True
                         source:
-                            u"http://%s:%s/data/eventimg?num=%d&id=%s" % (\
+                            u"http://%s:%s/data/eventimg?no=%d&id=%s" % (\
                             app.config.get('connection', 'host'), app.config.get('connection', 'port'),\
                             2 if app.following_epg2vdr.get('count', 0) > 2 else 0,\
                             app.following_eventid) if app.following_epg2vdr.get('imagecount', 0) > 0\
