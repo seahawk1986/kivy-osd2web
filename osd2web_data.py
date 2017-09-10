@@ -91,12 +91,18 @@ class ActualData(object):
         #self.pp(data)
         for key, value in data.iteritems():
             setattr(self, key, value)
+        if "present_epg2vdr_imagecount" not in data.keys():
+            self.present_epg2vdr_imagecount = "0"
+        if "following_epg2vdr_imagecount" not in data.keys():
+            self.following_epg2vdr_imagecount = "0"
 
         now = int(time.time()) # seconds since epoch
         self.epg_progress_max = self.present_duration #  self.present_endtime - self.present_starttime
         self.epg_progress_value = now - self.present_starttime
         print("present_eventid:", self.present_eventid)
         print("present_epg2vdr_imagecount:", self.present_epg2vdr_imagecount)
+        print("following_eventid:", self.following_eventid)
+        print("follosing_epg2vdr_imagecount:", self.following_epg2vdr_imagecount)
 
 
 class ReplayData(object):
