@@ -520,7 +520,7 @@
                         u"http://%s:%s/data/eventimg?num=%d&id=%s" % (\
                         app.config.get('connection', 'host'), app.config.get('connection', 'port'),\
                         0, app.present_eventid) if app.present_epg2vdr.get('count', 0) > 0\
-                        else "https://i.redd.it/qbfoxw3m06ez.gif"
+                        else "icons/black.gif"
         ProgressBar:
             size_hint: 1, .02
             max: app.epg_progress_max
