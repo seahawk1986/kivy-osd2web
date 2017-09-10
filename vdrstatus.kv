@@ -492,6 +492,7 @@
                         allow_stretch: True
                         source:
                             u"http://%s:%s/data/eventimg?num=%d&id=%s" % (\
+                            app.config.get('connection', 'host'), app.config.get('connection', 'port'),\
                             0, app.present_eventid) if app.present_epg2vdr.get('count', 0) > 0\
                             else "icons/black.gif"
                     AsyncImage:
@@ -499,6 +500,7 @@
                         allow_stretch: True
                         source:
                             u"http://%s:%s/data/eventimg?num=%d&id=%s" % (\
+                            app.config.get('connection', 'host'), app.config.get('connection', 'port'),\
                             1 if app.present_epg2vdr.get('count', 0) > 1 else 0,\
                             app.present_eventid) if app.present_epg2vdr.get('count', 0) > 0\
                             else "icons/black.gif"
@@ -507,6 +509,7 @@
                         allow_stretch: True
                         source:
                             u"http://%s:%s/data/eventimg?num=%d&id=%s" % (\
+                            app.config.get('connection', 'host'), app.config.get('connection', 'port'),\
                             2 if app.present_epg2vdr.get('count', 0) > 2 else 0,\
                             app.present_eventid) if app.present_epg2vdr.get('count', 0) > 0\
                             else "icons/black.gif"
@@ -515,6 +518,7 @@
                     allow_stretch: True
                     source:
                         u"http://%s:%s/data/eventimg?num=%d&id=%s" % (\
+                        app.config.get('connection', 'host'), app.config.get('connection', 'port'),\
                         0, app.present_eventid) if app.present_epg2vdr.get('count', 0) > 0\
                         else "https://i.redd.it/qbfoxw3m06ez.gif"
         ProgressBar:
@@ -556,6 +560,7 @@
                         allow_stretch: True
                         source:
                             u"http://%s:%s/data/eventimg?num=%d&id=%s" % (\
+                            app.config.get('connection', 'host'), app.config.get('connection', 'port'),\
                             0, app.following_eventid) if app.following_epg2vdr.get('count', 0) > 0\
                             else "icons/black.gif"
                     AsyncImage:
@@ -563,6 +568,7 @@
                         allow_stretch: True
                         source:
                             u"http://%s:%s/data/eventimg?num=%d&id=%s" % (\
+                            app.config.get('connection', 'host'), app.config.get('connection', 'port'),\
                             1 if app.following_epg2vdr.get('count', 0) > 1 else 0,\
                             app.following_eventid) if app.following_epg2vdr.get('count', 0) > 0\
                             else "icons/black.gif"
@@ -571,6 +577,7 @@
                         allow_stretch: True
                         source:
                             u"http://%s:%s/data/eventimg?num=%d&id=%s" % (\
+                            app.config.get('connection', 'host'), app.config.get('connection', 'port'),\
                             2 if app.following_epg2vdr.get('count', 0) > 2 else 0,\
                             app.following_eventid) if app.following_epg2vdr.get('count', 0) > 0\
                             else "icons/black.gif"
