@@ -19,7 +19,7 @@ sudo apt-get install python-pygame python-opengl libgl1-mesa-dev libgles2-mesa-d
 sudo apt-get build-dep kivy cython
 virtualenv ~/kivy # choose the directory wisely, you cannot move it without breaking the virtualenv
 source ~/kivy/bin/activate # this is needed in every new shell session to use the python libraries from the virtualenv
-pip install --upgrade pip setup-tools
+pip install --upgrade pip setuptools
 pip install --upgrade cython
 pip install --upgrade git+https://github.com/kivy/kivy.git@master
 pip install --upgrade twisted autobahn # this may take a while to complete
