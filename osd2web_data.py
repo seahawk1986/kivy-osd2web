@@ -212,7 +212,8 @@ class CustomData(object):
     customdata = DictProperty({})
 
     def update_customdata(self, data):
-        #self.pp(data)
+        print("custom data:")
+        self.pp(data)
         for key, value in data.items():
             k = 'custom_' + key
             if not hasattr(self, k):
@@ -239,7 +240,13 @@ class SkinstateData(object):
 
     def update_skinstate(self, data):
         self.skin_attached = bool(data.get('attached', 0))
-
+        if self.skin_attached and self.sm.current not in ('menu',):
+            self.sm.current = "menu"
+        elif not self.skin_attached and self.sm.current == "menu":
+            if self.replaycontrol_active:
+                self.sm.current = 'replay'
+            else:
+                self.sm.current = 'livetv'
 
 class ButtonsData(object):
     btn_red = StringProperty("")
