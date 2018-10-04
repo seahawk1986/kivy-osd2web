@@ -171,8 +171,8 @@ class VDRStatusAPP(App, osd2webData):
     def send_key(self, key, repeat=1):
         """send a keypress with a given number of repeats"""
         if self.connection is not None:
-            self.takefocus()
             if key == 'Menu':
+                self.takefocus()
                 self.send_menu_lenght()
             self.connection.factory.protocol.broadcast_message(
                 {
@@ -283,6 +283,7 @@ class VDRStatusAPP(App, osd2webData):
         elif self.is_startup:
             self.is_startup = False
             self.sm.current = self.default_screen
+            self.sm.last = self.default_screen
         return self.sm
 
 if __name__ == '__main__':

@@ -240,13 +240,17 @@ class SkinstateData(object):
 
     def update_skinstate(self, data):
         self.skin_attached = bool(data.get('attached', 0))
-        if self.skin_attached and self.sm.current not in ('menu',):
-            self.sm.current = "menu"
-        elif not self.skin_attached and self.sm.current == "menu":
+        if self.skin_attached:
+            self.sm.last = self.sm.current
+            if self.sm.current != "menu":
+                self.sm.current = "menu"
+        elif not self.skin_attached and self.sm.current == "menu" and self.sm.last != "menu":
             if self.replaycontrol_active:
                 self.sm.current = 'replay'
-            else:
+            elif self.sm.last == 'replay':
                 self.sm.current = 'livetv'
+            else:
+                self.sm.current = self.sm.last
 
 class ButtonsData(object):
     btn_red = StringProperty("")
