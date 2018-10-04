@@ -7,7 +7,7 @@ from twisted.internet.protocol import ReconnectingClientFactory
 LOGIN = json.dumps(
         {
             'event': 'login',
-            'object': {'type': 1}
+            'object': {'type': 0}
         }).encode('utf-8')
 LOGOUT = json.dumps(
         {
@@ -17,7 +17,7 @@ LOGOUT = json.dumps(
 
 class CustomWebsocketClientProtocol(WebSocketClientProtocol):
     connections = list()
-    
+
     def onConnect(self, response):
         print("Server connected: {0}".format(response.peer))
         self.connections.append(self)
@@ -31,7 +31,7 @@ class CustomWebsocketClientProtocol(WebSocketClientProtocol):
             #print("Binary message received: {0} bytes".format(len(payload)))
             pass
         else:
-            data = json.loads(payload.decode('utf-8'))
+            data = json.loads(payload.decode('utf-8'), strict=False)
             name = data['event']
             dat = data['object']
             self.app.update_data(name, dat)

@@ -42,8 +42,8 @@ from webcontrol import WebControllerFactory
 
 mimetypes.guess_extension = partial(mimetypes.guess_extension, strict=False)
 
-class AsyncImage(AsyncImage):
-    pass
+#class AsyncImage(AsyncImage):
+#    pass
 
 
 class BlockWidget(object):
@@ -150,9 +150,28 @@ class VDRStatusAPP(App, osd2webData):
                      "object": {"categories": category_list}
                      })
 
+    def toggle_client_active(self):
+        if not self.skin_attached:
+            self.takefocus()
+        else:
+            self.leavefocus()
+
+    def takefocus(self):
+        if not self.skin_attached:
+            self.connection.factory.protocol.broadcast_message(
+                {"event":"takefocus"}
+            )
+
+    def leavefocus(self):
+        self.connection.factory.protocol.broadcast_message(
+            {"event":"leavefocus"}
+        )
+
+
     def send_key(self, key, repeat=1):
         """send a keypress with a given number of repeats"""
         if self.connection is not None:
+            self.takefocus()
             if key == 'Menu':
                 self.send_menu_lenght()
             self.connection.factory.protocol.broadcast_message(
