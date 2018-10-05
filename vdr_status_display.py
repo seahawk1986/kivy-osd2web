@@ -194,13 +194,24 @@ class VDRStatusAPP(App, osd2webData):
                     item = flatten_json(item)
                 flattened_items.append(item)
             data = flattened_items
-        #self.pp.pprint(data)
+        #print("debug show raw data:")
+        #self.pp(data)
         update_function = self.update_register.get(name, None)
         if update_function is None:
             print("unhandled event:", name)
             self.pp(data)
         else:
             update_function(data)
+
+    def get_chan_img(self):
+        channel_url_template = u"http://%s:%s/data/channellogo?name=%s&id=%s"
+        if (app.rolechange_havelogos and app.channel_channelname and app.current != 'replay'):
+            return channel_url_template % (\
+                app.config.get('connection', 'host'), app.config.get('connection', 'port'),\
+                quote(app.channel_channelname.encode('utf-8')), app.channel_channelid)\
+
+        else:
+            return 'icons/menu.png'
 
     def update_clock(self, *args):
         self.localtime = time.localtime()

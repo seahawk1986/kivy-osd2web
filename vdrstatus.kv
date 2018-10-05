@@ -34,10 +34,7 @@
 
 <ChannelLogo@AsyncImage>:
     source:
-        u"http://%s:%s/data/channellogo?name=%s&id=%s" % (\
-        app.config.get('connection', 'host'), app.config.get('connection', 'port'),\
-        quote(app.channel_channelname.encode('utf-8')), app.channel_channelid)\
-        if (app.rolechange_havelogos and app.channel_channelname) else 'icons/menu.png'
+        app.get_chan_img()
     pos: self.parent.pos
     halign: 'center'
     valign: 'middle'
