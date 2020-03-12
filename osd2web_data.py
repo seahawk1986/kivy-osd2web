@@ -89,7 +89,7 @@ class ActualData(object):
 
     def update_actual(self, data):
         #self.pp(data)
-        for key, value in data.iteritems():
+        for key, value in data.items():
             setattr(self, key, value)
         if "present_epg2vdr_imagecount" not in data.keys():
             self.present_epg2vdr_imagecount = "0"

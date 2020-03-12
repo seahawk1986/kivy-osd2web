@@ -3,13 +3,13 @@ proof of concept for a kivy application that communicates with the osd2web plugi
 
 # Dependencies
 This app has the following dependencies (the debian/ubuntu Package name is in brackets, Ubuntu >= 16.04 has the needed package versions)
- - python2.7 (kivy's twisted integration does not work with python3)
+ - python3
  - kivy >= 1.11.0 (python-kivy from https://launchpad.net/~kivy-team/+archive/ubuntu/kivy)
- - twisted (python-twisted)
- - autobahn (python-autobahn)
+ - twisted (python3-twisted)
+ - autobahn (python3-autobahn)
  - RobotoCondensed-Regular.ttf (fonts-roboto)
  
- If your distributions's packages are to old (e.g. on Ubuntu 14.04) or you simply want the newest versions, you can install the python packages with pip in a virtualenv:
+ If your distributions's packages are to old (e.g. on Ubuntu 14.04 until 18.04) or you simply want the newest versions, you can install the python packages with pip in a virtualenv:
  
  ```
 sudo apt-get install git python-virtualenv python-dev build-essential fonts-roboto python-pip

@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from __future__ import print_function
 from collections import OrderedDict
@@ -11,6 +11,9 @@ from datetime import datetime, timedelta
 import json
 import locale
 import mimetypes
+import os
+if not os.environ.get('KIVY_GL_BACKEND'):
+    os.environ['KIVY_GL_BACKEND'] = 'sdl2'
 import pprint
 import sys
 import time
@@ -44,7 +47,6 @@ mimetypes.guess_extension = partial(mimetypes.guess_extension, strict=False)
 
 #class AsyncImage(AsyncImage):
 #    pass
-
 
 class BlockWidget(object):
     """scale font to fill the label"""
@@ -270,7 +272,7 @@ class VDRStatusAPP(App, osd2webData):
 
     def build(self):
         self.sm = MyScreenManager()
-        for screen_class, screen_name in self.screens.iteritems():
+        for screen_class, screen_name in self.screens.items():
             self.sm.add_widget(screen_class(name=screen_name, id=screen_name))
         self.url = "ws://{}:{}".format(self.config.get('connection', 'host'),
                                        self.config.getint('connection', 'port'))
