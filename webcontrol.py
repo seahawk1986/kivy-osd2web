@@ -3,7 +3,7 @@ from twisted.internet import protocol
 
 class WebController(protocol.Protocol):
     def connectionMade(self):
-        self.transport.write("SVDRP kivy-osd2web client; UTF-8\r\n")
+        self.transport.write("SVDRP kivy-osd2web client; UTF-8\r\n".encode())
 
     def dataReceived(self, data):
         data = data.decode('utf-8').strip()
@@ -12,9 +12,9 @@ class WebController(protocol.Protocol):
             returncode, response = self.factory.app.handle_webctrl_message(data)
             if response:
                 for line in response[:-1]:
-                    self.transport.write("{}-{}\r\n".format(returncode, line))
-                self.transport.write("{} {}\r\n".format(returncode, response[-1]))
-        self.transport.write("221 kivy-osd2web closing connection\r\n")
+                    self.transport.write(f"{returncode}-{line}\r\n".encode())
+                self.transport.write(f"{returncode} {response[-1]}\r\n".encode())
+        self.transport.write("221 kivy-osd2web closing connection\r\n".encode())
         self.transport.loseConnection()
 
 
