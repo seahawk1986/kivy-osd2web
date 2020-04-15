@@ -102,7 +102,9 @@ class ActualData(object):
         print("present_eventid:", self.present_eventid)
         print("present_epg2vdr_imagecount:", self.present_epg2vdr_imagecount)
         print("following_eventid:", self.following_eventid)
-        print("follosing_epg2vdr_imagecount:", self.following_epg2vdr_imagecount)
+        print("following_epg2vdr_imagecount:", self.following_epg2vdr_imagecount)
+        print("channel_channelname:", self.channel_channelname)
+
 
 
 class ReplayData(object):
@@ -206,6 +208,7 @@ class RecordingsData(object):
              'images': recording.get('images', []),
             } for recording in data], key=lambda k: k['starttime'], reverse=True)
         #self.pp(self.recordings)
+        self.pp([r.get('images') for r in self.recordings])
 
 
 class CustomData(object):

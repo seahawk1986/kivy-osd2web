@@ -17,6 +17,7 @@ if not os.environ.get('KIVY_GL_BACKEND'):
 import pprint
 import sys
 import time
+from urllib.parse import quote
 from functools import partial
 from kivy.app import App
 from kivy.clock import Clock
@@ -204,16 +205,6 @@ class VDRStatusAPP(App, osd2webData):
             self.pp(data)
         else:
             update_function(data)
-
-    def get_chan_img(self):
-        channel_url_template = u"http://%s:%s/data/channellogo?name=%s&id=%s"
-        if (app.rolechange_havelogos and app.channel_channelname and app.current != 'replay'):
-            return channel_url_template % (\
-                app.config.get('connection', 'host'), app.config.get('connection', 'port'),\
-                quote(app.channel_channelname.encode('utf-8')), app.channel_channelid)\
-
-        else:
-            return 'icons/menu.png'
 
     def update_clock(self, *args):
         self.localtime = time.localtime()

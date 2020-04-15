@@ -33,7 +33,7 @@
 
 <ChannelLogo@AsyncImage>:
     source:
-        app.get_chan_img()
+        "http://{}:{}/data/channellogo?name={}&id={}".format(app.config.get('connection', 'host'), app.config.get('connection', 'port'), quote(app.channel_channelname.encode('utf-8')), app.channel_channelid) if (app.rolechange_havelogos and app.channel_channelname and app.sm.current and app.sm.current != 'replay') else 'icons/menu.png'
     pos: self.parent.pos
     halign: 'center'
     valign: 'middle'
